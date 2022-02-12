@@ -8,5 +8,7 @@ namespace Library.Services.LibraryService
 {
     public interface ILibraryService
     {
+        Task<LibraryService> StartLibrary();
+        Task<LibraryService> StopLibrary();
     }
 }

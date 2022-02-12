@@ -15,5 +15,7 @@ namespace Library.Model
         public string AuthorLastName { get; set; }
 
         public string BookName { get; set; }
+
+        public bool isBorrowed { get; set; }
     }
 }
