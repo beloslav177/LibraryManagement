@@ -9,10 +9,10 @@ namespace Library.Services.UserService
 {
     public interface IUserService
     {
-        Task<List<User>> AddUser(User user);
-        Task<List<User>> DeleteUser(int id);
+        Task<User> AddUser(string firstName, string lastName);
+        Task<User> DeleteUser(string firstName, string lastName);
+        Task<User> GetUser(string firstName, string lastName);
         Task<List<User>> GetAllUsers();
-        Task<List<User>> GetBorrowedBooks(Book book, User user);
-        Task<User> GetUser (string FirstName, string LastName);
+        Task<Book> GetBorrowedBooks(string bookName, string firstName, string lastName);
     }
 }

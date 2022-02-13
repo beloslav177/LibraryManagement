@@ -9,11 +9,11 @@ namespace Library.Services.BookService
 {
     public interface IBookService
     {
-        Task<List<Book>> AddBook(Book book);
-        Task<List<Book>> DeleteBook(int id);
-        Task<List<Book>> GetBook(string BookName);
-        Task<Book> GetAllBooks();
-        Task<List<Book>> BorrowBook(Book book, User user);
-        Task<List<Book>> ReturnBook(Book book, User user);
+        Task<Book> AddBook(string authorFirstName, string authorLastName, string bookName);
+        Task<Book> DeleteBook(string bookName);
+        Task<Book> GetBook(string BookName);
+        Task<List<Book>> GetAllBooks();
+        Task<Book> BorrowBook(string bookName, string firstName, string lastName);
+        Task<Book> ReturnBook(string bookName, string firstName, string lastName);
     }
 }
