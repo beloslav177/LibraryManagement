@@ -26,6 +26,8 @@ namespace Library.Services.BookService
                 authorFirstName = authorName.Split(' ')[0];
                 authorLastName = authorName.Split(' ')[1];
                 authorName = authorFirstName + " " + authorLastName;
+                if (authorFirstName == null) authorFirstName = "";
+                if (authorLastName == null) authorLastName = "";
 
                 Console.WriteLine("Please enter a name of book.");
                 bookName = Console.ReadLine();
@@ -82,6 +84,8 @@ namespace Library.Services.BookService
                 firstName = name.Split(' ')[0];
                 lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
+                if (firstName == null) firstName = "";
+                if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
                 if (user == null) 
@@ -91,6 +95,8 @@ namespace Library.Services.BookService
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
+                    if (firstName == null) firstName = "";
+                    if (lastName == null) lastName = "";
                     user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
                 }
 
@@ -200,6 +206,8 @@ namespace Library.Services.BookService
                 firstName = name.Split(' ')[0];
                 lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
+                if (firstName == null) firstName = "";
+                if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
                 while (user == null)
@@ -209,6 +217,8 @@ namespace Library.Services.BookService
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
+                    if (firstName == null) firstName = "";
+                    if (lastName == null) lastName = "";
                     user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
                 }
                 Console.WriteLine("Please enter a name of book you want a return.");

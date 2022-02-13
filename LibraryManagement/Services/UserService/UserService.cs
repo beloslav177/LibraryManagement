@@ -21,11 +21,15 @@ namespace Library.Services.UserService
                 string firstName;
                 string lastName;
                 Console.WriteLine("Please enter a first name and last name of user.");
+
                 string name = Console.ReadLine();
                 firstName = name.Split(' ')[0];
                 lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
+                if (firstName == null) firstName = "";
+                if (lastName == null) lastName = "";
                 var userName = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+
                 while (userName != null)
                 {
                     Console.WriteLine("User is already exist. Please Try again");
@@ -57,6 +61,8 @@ namespace Library.Services.UserService
                 firstName = name.Split(' ')[0];
                 lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
+                if (firstName == null) firstName = "";
+                if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
                 while (user == null)
@@ -66,6 +72,8 @@ namespace Library.Services.UserService
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
+                    if (firstName == null) firstName = "";
+                    if (lastName == null) lastName = "";
                     user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
                 }
 
@@ -76,6 +84,8 @@ namespace Library.Services.UserService
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
+                    if (firstName == null) firstName = "";
+                    if (lastName == null) lastName = "";
                     user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
                 }
 
@@ -120,6 +130,8 @@ namespace Library.Services.UserService
                 firstName = name.Split(' ')[0];
                 lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
+                if (firstName == null) firstName = "";
+                if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
                 while (user == null)
@@ -129,6 +141,8 @@ namespace Library.Services.UserService
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
+                    if (firstName == null) firstName = "";
+                    if (lastName == null) lastName = "";
                     user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
                 }
 
@@ -164,8 +178,9 @@ namespace Library.Services.UserService
                 firstName = name.Split(' ')[0];
                 lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
-                var user = await context.Users
-                .FirstOrDefaultAsync(u => u.FirstName == firstName & u.LastName == lastName);
+                if (firstName == null) firstName = "";
+                if (lastName == null) lastName = "";
+                var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName & u.LastName == lastName);
 
                 while (user == null)
                 {
@@ -174,6 +189,8 @@ namespace Library.Services.UserService
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
+                    if (firstName == null) firstName = "";
+                    if (lastName == null) lastName = "";
                     user = await context.Users
                     .FirstOrDefaultAsync(u => u.FirstName == firstName & u.LastName == lastName);
                 }
