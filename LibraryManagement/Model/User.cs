@@ -14,6 +14,6 @@ namespace Library.Model
 
         public string LastName { get; set;}
 
-        public bool IsBorrowing { get; set; }
+        public bool IsBorrowing { get; set; } = false;
     }
 }

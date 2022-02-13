@@ -11,31 +11,33 @@ namespace Library.Services.BookService
 {
     public class BookService : IBookService
     {
-        private readonly DataContext context;
-        private readonly User user;
+        private DataContext context = new DataContext();
+        private User user = new User();
 
-        public BookService(DataContext context, User user)
-        {
-            this.context = context;
-            this.user = user;
-        }
-
-        public async Task<Book> AddBook(string authorFirstName, string authorLastName, string bookName)
+        public async Task<Book> AddBook()
         {
             try
             {
+                string authorFirstName;
+                string authorLastName;        
+                string bookName;
                 Console.WriteLine("Please enter a first name and last name of author a book.");
                 string authorName = Console.ReadLine();
+                authorFirstName = authorName.Split(' ')[0];
+                authorLastName = authorName.Split(' ')[1];
                 authorName = authorFirstName + " " + authorLastName;
 
                 Console.WriteLine("Please enter a name of book.");
                 bookName = Console.ReadLine();
-
                 var bookNameExist = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (bookNameExist != null)
+
+                while (bookNameExist != null)
                 {
-                    Console.WriteLine("Book is already exist.");
+                    Console.WriteLine("Book is already exist. Please try again.");
+                    bookName = Console.ReadLine();
+                    bookNameExist = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
                 }
+
                 var book = new Book { AuthorFirstName = authorFirstName, AuthorLastName = authorLastName, BookName = bookName };
                 context.Books.Add(book);
                 context.SaveChanges();
@@ -44,73 +46,100 @@ namespace Library.Services.BookService
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception thrown", ex);
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
             }            
         }
 
-        public async Task<Book> BorrowBook(string bookName, string firstName, string lastName)
+        public async Task<Book> BorrowBook()
         {
             try
             {
+                string bookName;
+                string firstName;
+                string lastName;
                 Console.WriteLine("Please enter a name of Book you want to borrow.");
+
                 bookName = Console.ReadLine();
                 var book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (book == null)
+
+                while(book == null)
                 {
-                    Console.WriteLine("Book is not exist in Library.");
-                    return null;
+                    Console.WriteLine("Book is not exist in Library. Try again");
+                    bookName = Console.ReadLine();
+                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
                 }
-                if (book.IsBorrowed == true)
+
+                while (book.IsBorrowed == true)
                 {
                     Console.WriteLine("Book is already taken, it's not possible to borrow once again.");
-                    return null;
+                    bookName = Console.ReadLine();
+                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
                 }
-                else
+
+                Console.WriteLine("Please write a first name and last name of the person to whom you want to borrow the book");
+                string name = Console.ReadLine();
+                firstName = name.Split(' ')[0];
+                lastName = name.Split(' ')[1];
+                name = firstName + " " + lastName;
+                var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+
+                if (user == null) 
                 {
-                    Console.WriteLine("Please write a first name and last name of the person to whom you want to borrow the book");
-                    string name = Console.ReadLine();
+                    Console.WriteLine("User does'nt exist.");
+                    name = Console.ReadLine();
+                    firstName = name.Split(' ')[0];
+                    lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
-                    var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-                    if (user == null) Console.WriteLine("User does'nt exist.");
-                    user.IsBorrowing = true;
-                    book.IsBorrowed = true;
-                    book.UserNameOfBorrowed = firstName + " " + lastName;
-                    Console.WriteLine(firstName + " " + lastName + " is borrowing " + bookName);
+                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
                 }
+
+                user.IsBorrowing = true;
+                book.IsBorrowed = true;
+                book.UserNameOfBorrowed = firstName + " " + lastName;
+                context.SaveChanges();
+                Console.WriteLine(firstName + " " + lastName + " is borrowing " + bookName);
                 return book;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception thrown", ex);
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
             }            
         }
 
-        public async Task<Book> DeleteBook(string bookName)
+        public async Task<Book> DeleteBook()
         {
             try
             {
+                string bookName;
                 Console.WriteLine("Please enter a name of the book you want to delete.");
+
                 bookName = Console.ReadLine();
                 var book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (book == null)
+
+                while(book == null)
                 {
-                    Console.WriteLine("The book is does'nt exist in Library.");
-                    return null;
+                    Console.WriteLine("The book is does'nt exist in Library. Try again.");
+                    bookName = Console.ReadLine();
+                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
                 }
-                if (book.IsBorrowed == true)
+
+                while (book.IsBorrowed == true)
                 {
-                    Console.WriteLine("This book is borrowed, so it's not possible to delete.");
-                    return null;
+                    Console.WriteLine("This book is borrowed, so it's not possible to delete. Try different book.");
+                    bookName = Console.ReadLine();
+                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
                 }
+
                 context.Books.Remove(book);
+                context.SaveChanges();
                 Console.WriteLine("You already removed a book with name " + bookName);
                 return book;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception thrown", ex);
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
             }            
         }
@@ -126,58 +155,91 @@ namespace Library.Services.BookService
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception thrown", ex);
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
             }            
         }
 
-        public async Task<Book> GetBook(string bookName)
+        public async Task<Book> GetBook()
         {
             try
             {
+                string bookName;
                 Console.WriteLine("Please enter a name of the book you want to see.");
                 bookName = Console.ReadLine();
                 var book = await context.Books
                 .FirstOrDefaultAsync(b => b.BookName == bookName);
 
-                if (book == null)
+                while (book == null)
                 {
-                    Console.WriteLine("The book is does'nt exist in Library.");
-                    return null;
+                    Console.WriteLine("The book is does'nt exist in Library. Try again.");
+                    bookName = Console.ReadLine();
+                    book = await context.Books
+                    .FirstOrDefaultAsync(b => b.BookName == bookName);
                 }
                 Console.WriteLine("Your book " + bookName);
                 return book;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception thrown", ex);
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
             }
         }
 
-        public async Task<Book> ReturnBook(string bookName, string firstName, string lastName)
+        public async Task<Book> ReturnBook()
         {
             try
             {
+                string bookName;
+                string firstName;
+                string lastName;
                 Console.WriteLine("Please enter a user name and last name which want a return book.");
+
                 string name = Console.ReadLine();
+                firstName = name.Split(' ')[0];
+                lastName = name.Split(' ')[1];
                 name = firstName + " " + lastName;
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-                if (user == null) Console.WriteLine("User doesn't exist.");
+
+                while (user == null)
+                {
+                    Console.WriteLine("User doesn't exist. Please try again.");
+                    name = Console.ReadLine();
+                    firstName = name.Split(' ')[0];
+                    lastName = name.Split(' ')[1];
+                    name = firstName + " " + lastName;
+                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                }
                 Console.WriteLine("Please enter a name of book you want a return.");
+
                 bookName = Console.ReadLine();
                 var book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
-                if (book == null) Console.WriteLine("Book is not exist in Library.");
-                if (book.IsBorrowed == false) Console.WriteLine("Book is not borrowed.");
+
+                while (book == null)
+                {
+                    Console.WriteLine("Book is not exist in Library. Try again.");
+                    bookName = Console.ReadLine();
+                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
+                }
+                while (book.IsBorrowed == false)
+                {
+                    Console.WriteLine("Book is not borrowed. Try different book.");
+                    bookName = Console.ReadLine();
+                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
+                }
+
                 user.IsBorrowing = false;
                 book.IsBorrowed = false;
-                book.UserNameOfBorrowed = "";
+                book.UserNameOfBorrowed = null;
+                context.SaveChanges();
+
                 Console.WriteLine("The book " + bookName + " is returned");
                 return book;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception thrown", ex);
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
             }
         }
