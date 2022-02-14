@@ -11,24 +11,106 @@ namespace LibraryManagement
         public static UserService userService = new UserService();
         public static BookService bookservice = new BookService();
 
+        public static Menu menu = new Menu("MainMenu");
+        public static Menu userMenu = new Menu("UserMenu");
+        public static Menu bookMenu = new Menu("BookMenu");
+
         static void Main(string[] args)
         {
-            userService.Close = true;
-            bookservice.Close = true;
-            Console.WriteLine("For start a library press 1 or 2 for close the application.");
-            string option = (Console.ReadLine());
-            if (option == "1")
+            menu.AddMenuItem(1, "Book Service");
+            menu.AddMenuItem(2, "User Service");
+            menu.AddMenuItem(6, "Exit");
+
+            userMenu.AddMenuItem(1, "Add user");
+            userMenu.AddMenuItem(2, "Delete user");
+            userMenu.AddMenuItem(3, "Show users");
+            userMenu.AddMenuItem(4, "Show borrowed books for user");
+            userMenu.AddMenuItem(5, "Search user");
+            userMenu.AddMenuItem(6, "Back");
+
+            bookMenu.AddMenuItem(1, "Add book");
+            bookMenu.AddMenuItem(2, "Delete book");
+            bookMenu.AddMenuItem(3, "Show all books");
+            bookMenu.AddMenuItem(4, "Borrow book");
+            bookMenu.AddMenuItem(5, "Return book");
+            bookMenu.AddMenuItem(6, "Back");           
+
+            //TODO: no replication, borrow
+
+            bool done = false;
+            while (!done)
             {
-                StartLibrary();
-            }
-            else if (option == "2")
-            {
-                Environment.Exit(0);
-            }
-            else
-            {
-                Console.WriteLine("Invalid option\nRetry !!!");
-            }
+                var execute = menu.Execute();
+                switch (execute)
+                {
+                    case 1:
+                        bool bookDone = false;
+                        while (!bookDone)
+                        {
+                            var book = bookMenu.Execute();
+                            switch (book)
+                            {
+                                case 1:
+                                    bookservice.AddBook();
+                                    break;
+                                case 2:
+                                    bookservice.DeleteBook();
+                                    break;
+                                case 3:
+                                    bookservice.GetAllBooks();
+                                    break;
+                                case 4:
+                                    bookservice.BorrowBook();
+                                    break;
+                                case 5:
+                                    bookservice.ReturnBook();
+                                    break;
+                                case 6:
+                                    bookDone = true;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        break;
+                    case 2:
+                        bool userDone = false;
+                        while (!userDone)
+                        {
+                            var user = userMenu.Execute();
+                            switch (user)
+                            {
+                                case 1:
+                                    userService.AddUser();
+                                    break;
+                                case 2:
+                                    userService.DeleteUser();
+                                    break;
+                                case 3:
+                                    userService.GetAllUsers();
+                                    break;
+                                case 4:
+                                    userService.GetBorrowedBooks();
+                                    break;
+                                case 5:
+                                    userService.GetUser();
+                                    break;
+                                case 6:
+                                    userDone = true;
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                        }
+                        break;
+                    case 6:
+                        done = true;                        
+                        break;
+                    default:
+                        break;
+                }
+            }            
         }
         public static void StartLibrary()
         {

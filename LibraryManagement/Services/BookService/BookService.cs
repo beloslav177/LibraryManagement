@@ -33,7 +33,7 @@ namespace Library.Services.BookService
 
                 Console.WriteLine("Please enter a name of book.");
                 bookName = Console.ReadLine();
-                var bookNameExist = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                var bookNameExist = await context.Books.Include(u => u.User).FirstOrDefaultAsync(b => b.BookName == bookName);
 
                 if (bookNameExist != null)
                 {
