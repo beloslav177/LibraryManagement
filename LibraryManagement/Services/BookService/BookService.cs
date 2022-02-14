@@ -163,19 +163,19 @@ namespace Library.Services.BookService
             try
             {
                 string bookName;
-                Console.WriteLine("Please enter a name of the book you want to see.");
+                Console.WriteLine("\nPlease enter a name of the book you want to see.");
                 bookName = Console.ReadLine();
                 var book = await context.Books
                 .FirstOrDefaultAsync(b => b.BookName == bookName);
 
                 if (book == null)
                 {
-                    Console.WriteLine("The book is does'nt exist in Library. Try again.");
+                    Console.WriteLine("\nThe book is does'nt exist in Library. Try again.");
                     return null;
                 }
                 else
                 {
-                    Console.WriteLine("Your book " + bookName);
+                    Console.WriteLine("\nYour book " + bookName);
                     return book;
                 }
             }
@@ -193,7 +193,7 @@ namespace Library.Services.BookService
                 string bookName;
                 string firstName;
                 string lastName;
-                Console.WriteLine("Please enter a user name and last name which want a return book.");
+                Console.WriteLine("\nPlease enter a user name and last name which want a return book.");
 
                 string name = Console.ReadLine();
                 firstName = name.Split(' ')[0];
@@ -205,24 +205,24 @@ namespace Library.Services.BookService
 
                 if (user == null)
                 {
-                    Console.WriteLine("User doesn't exist.");
+                    Console.WriteLine("\nUser doesn't exist.");
                     return null;
                 }
                 else
                 {
-                    Console.WriteLine("Please enter a name of book you want a return.");
+                    Console.WriteLine("\nPlease enter a name of book you want a return.");
 
                     bookName = Console.ReadLine();
                     var book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
 
                     if (book == null)
                     {
-                        Console.WriteLine("Book is not exist in Library.");
+                        Console.WriteLine("\nBook is not exist in Library.");
                         return null;
                     }
                     else if (book.IsBorrowed == false)
                     {
-                        Console.WriteLine("Book is not borrowed.");
+                        Console.WriteLine("\nBook is not borrowed.");
                         return null;
                     }
                     else
@@ -232,7 +232,7 @@ namespace Library.Services.BookService
                         book.UserNameOfBorrowed = null;
                         context.SaveChanges();
 
-                        Console.WriteLine("The book " + bookName + " is returned");
+                        Console.WriteLine("\nThe book " + bookName + " is returned");
                         Console.ReadLine();
                         return book;
                     }                    

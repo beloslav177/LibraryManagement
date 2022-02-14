@@ -13,20 +13,23 @@ namespace LibraryManagement
 
         static void Main(string[] args)
         {
-            Console.WriteLine("For start a library press 1 or 2 for close the application.");
-            string option = (Console.ReadLine());
-            if (option == "1")
+            while (true)
             {
-                StartLibrary();
-            }
-            else if (option == "2")
-            {
-                Environment.Exit(0);
-            }
-            else
-            {
-                Console.WriteLine("Invalid option\nRetry !!!");
-            }           
+                Console.WriteLine("For start a library press 1 or 2 for close the application.");
+                string option = (Console.ReadLine());
+                if (option == "1")
+                {
+                    StartLibrary();
+                }
+                else if (option == "2")
+                {
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid option\nRetry !!!");
+                }
+            }                     
         }
         public static void StartLibrary()
         {
@@ -45,47 +48,56 @@ namespace LibraryManagement
                "10)Return book\n" +
                "11)End of application\n");
                 Console.Write("Choose your option from menu :");
-
-                int option = int.Parse(Console.ReadLine());
-                switch (option)
+                
+                string option = Console.ReadLine();
+                if (option == "1")
                 {
-                    case 1:
-                        userService.AddUser();
-                        break;
-                    case 2:
-                        userService.DeleteUser();
-                        break;
-                    case 3:
-                        userService.GetAllUsers();
-                        break;
-                    case 4:
-                        userService.GetBorrowedBooks();
-                        break;
-                    case 5:
-                        userService.GetUser();
-                        break;
-                    case 6:
-                        bookservice.AddBook();
-                        break;
-                    case 7:
-                        bookservice.DeleteBook();
-                        break;
-                    case 8:
-                        bookservice.GetAllBooks();
-                        break;
-                    case 9:
-                        bookservice.BorrowBook();
-                        break;
-                    case 10:
-                        bookservice.ReturnBook();
-                        break;
-                    case 11:
-                        Environment.Exit(0);
-                        break;
-                    default:
-                        Console.WriteLine("#################################");
-                        break;
+                    userService.AddUser();
                 }
+                else if (option == "2")
+                {
+                    userService.DeleteUser();
+                }
+                else if (option == "3")
+                {
+                    userService.GetAllUsers();
+                }
+                else if (option == "4")
+                {
+                    userService.GetBorrowedBooks();
+                }
+                else if (option == "5")
+                {
+                    userService.GetUser();
+                }
+                else if (option == "6")
+                {
+                    bookservice.AddBook();
+                }
+                else if (option == "7")
+                {
+                    bookservice.DeleteBook();
+                }
+                else if (option == "8")
+                {
+                    bookservice.GetAllBooks();
+                }
+                else if (option == "9")
+                {
+                    bookservice.BorrowBook();
+                }
+                else if (option == "10")
+                {
+                    bookservice.ReturnBook();
+                }
+                else if (option == "11")
+                {
+                    Environment.Exit(0);
+                }         
+                else
+                {
+                    Console.WriteLine("Invalid option\nRetry !!!");
+                }                
             }              
         }
     }

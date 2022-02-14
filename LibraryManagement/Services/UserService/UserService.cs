@@ -19,7 +19,7 @@ namespace Library.Services.UserService
             {
                 string firstName;
                 string lastName;
-                Console.WriteLine("Please enter a first name and last name of user.");
+                Console.WriteLine("\nPlease enter a first name and last name of user.");
 
                 string name = Console.ReadLine();
                 firstName = name.Split(' ')[0];
@@ -31,7 +31,7 @@ namespace Library.Services.UserService
 
                 if (userName != null)
                 {
-                    Console.WriteLine("User is already exist.");
+                    Console.WriteLine("\nUser is already exist.");
                     return null;
                 }
                 else
@@ -39,7 +39,7 @@ namespace Library.Services.UserService
                     var user = new User { FirstName = firstName, LastName = lastName };
                     context.Users.Add(user);
                     context.SaveChanges();
-                    Console.WriteLine("User " + firstName + " " + lastName + " is added. ");
+                    Console.WriteLine("\nUser " + firstName + " " + lastName + " is added. ");
                     return user;
                 }   
             }
@@ -56,7 +56,7 @@ namespace Library.Services.UserService
             {
                 string firstName;
                 string lastName;
-                Console.WriteLine("Please enter a first name and last name of user you want to delete.");
+                Console.WriteLine("\nPlease enter a first name and last name of user you want to delete.");
 
                 string name = Console.ReadLine();
                 firstName = name.Split(' ')[0];
@@ -68,20 +68,20 @@ namespace Library.Services.UserService
 
                 if (user == null)
                 {
-                    Console.WriteLine("The user is does'nt exist in Library.");
+                    Console.WriteLine("\nThe user is does'nt exist in Library.");
                     return null;
                 }
 
                 else if (user.IsBorrowing == true)
                 {
-                    Console.WriteLine("This user borrowing a book, so it's not possible delete user.");
+                    Console.WriteLine("\nThis user borrowing a book, so it's not possible delete user.");
                     return null;
                 }
                 else
                 {
                     context.Users.Remove(user);
                     context.SaveChanges();
-                    Console.WriteLine("You already removed an user with name " + firstName + " " + lastName);
+                    Console.WriteLine("\nYou already removed an user with name " + firstName + " " + lastName);
                     return user;
                 }                
             }
@@ -97,7 +97,7 @@ namespace Library.Services.UserService
             try
             {
                 var users = await context.Users.ToListAsync();
-                Console.WriteLine("Your library of users:\n");
+                Console.WriteLine("\nYour library of users:\n");
                 users.ForEach(i => Console.WriteLine("{0}\n", i.FirstName + " " + i.LastName));
                 return users;
             }
@@ -115,7 +115,7 @@ namespace Library.Services.UserService
                 string firstName;
                 string lastName;
                 int count = 0;
-                Console.WriteLine("Please enter first name and last name you want to see the books have borrowed");
+                Console.WriteLine("\nPlease enter first name and last name you want to see the books have borrowed");
 
                 string name = Console.ReadLine();
                 firstName = name.Split(' ')[0];
@@ -127,7 +127,7 @@ namespace Library.Services.UserService
 
                 if (user == null)
                 {
-                    Console.WriteLine("User is not exit in Library.");
+                    Console.WriteLine("\nUser is not exit in Library.");
                     return null;
                 }
                 else
@@ -139,10 +139,13 @@ namespace Library.Services.UserService
 
                     foreach (var book in books)
                     {
-                        Console.WriteLine("Books of borrowed User:\n" + count + ".) " + book + "\n");
+                        Console.WriteLine("\nBooks of borrowed User:\n" + count + ".) " + book + "\n");
                         count++;
                     }
-                    Console.ReadLine();
+                    if (books == null)
+                    {
+                        Console.WriteLine("\n User has not borrowed books.");
+                    }
                     return user;
                 }                
             }
@@ -159,7 +162,7 @@ namespace Library.Services.UserService
             {
                 string firstName;
                 string lastName;
-                Console.WriteLine("Please enter a first name and last name of user");
+                Console.WriteLine("\nPlease enter a first name and last name of user");
 
                 string name = Console.ReadLine();
                 firstName = name.Split(' ')[0];
@@ -171,12 +174,12 @@ namespace Library.Services.UserService
 
                 if (user == null)
                 {
-                    Console.WriteLine("The user is does'nt exist in Library.");
+                    Console.WriteLine("\nThe user is does'nt exist in Library.");
                     return null;
                 }
                 else
                 {
-                    Console.WriteLine("Your requested user: " + firstName + " " + lastName);
+                    Console.WriteLine("\nYour requested user: " + firstName + " " + lastName);
                     return user;
                 }
             }
