@@ -12,7 +12,6 @@ namespace Library.Services.BookService
     public class BookService : IBookService
     {
         private DataContext context = new DataContext();
-        private User user = new User();
 
         public async Task<Book> AddBook()
         {
@@ -22,6 +21,7 @@ namespace Library.Services.BookService
                 string authorLastName;        
                 string bookName;
                 Console.WriteLine("Please enter a first name and last name of author a book.");
+
                 string authorName = Console.ReadLine();
                 authorFirstName = authorName.Split(' ')[0];
                 authorLastName = authorName.Split(' ')[1];
@@ -33,11 +33,9 @@ namespace Library.Services.BookService
                 bookName = Console.ReadLine();
                 var bookNameExist = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
 
-                while (bookNameExist != null)
+                if (bookNameExist != null)
                 {
-                    Console.WriteLine("Book is already exist. Please try again.");
-                    bookName = Console.ReadLine();
-                    bookNameExist = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                    Console.WriteLine("Book is already exist.");
                 }
 
                 var book = new Book { AuthorFirstName = authorFirstName, AuthorLastName = authorLastName, BookName = bookName };
@@ -65,47 +63,42 @@ namespace Library.Services.BookService
                 bookName = Console.ReadLine();
                 var book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
 
-                while(book == null)
+                if(book == null)
                 {
-                    Console.WriteLine("Book is not exist in Library. Try again");
-                    bookName = Console.ReadLine();
-                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                    Console.WriteLine("Book is not exist in Library.");
+                    return null;
                 }
-
-                while (book.IsBorrowed == true)
+                else if (book.IsBorrowed == true)
                 {
                     Console.WriteLine("Book is already taken, it's not possible to borrow once again.");
-                    bookName = Console.ReadLine();
-                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                    return null;
                 }
-
-                Console.WriteLine("Please write a first name and last name of the person to whom you want to borrow the book");
-                string name = Console.ReadLine();
-                firstName = name.Split(' ')[0];
-                lastName = name.Split(' ')[1];
-                name = firstName + " " + lastName;
-                if (firstName == null) firstName = "";
-                if (lastName == null) lastName = "";
-                var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-
-                if (user == null) 
+                else
                 {
-                    Console.WriteLine("User does'nt exist.");
-                    name = Console.ReadLine();
+                    Console.WriteLine("Please write a first name and last name of the person to whom you want to borrow the book");
+                    string name = Console.ReadLine();
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];
                     name = firstName + " " + lastName;
                     if (firstName == null) firstName = "";
                     if (lastName == null) lastName = "";
-                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-                }
+                    var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
-                user.IsBorrowing = true;
-                book.IsBorrowed = true;
-                book.UserNameOfBorrowed = firstName + " " + lastName;
-                context.SaveChanges();
-                Console.WriteLine(firstName + " " + lastName + " is borrowing " + bookName);
-                return book;
+                    if (user == null)
+                    {
+                        Console.WriteLine("User does'nt exist. Make all borrowed process again.");
+                        return null;
+                    }
+                    else
+                    {
+                        user.IsBorrowing = true;
+                        book.IsBorrowed = true;
+                        book.UserNameOfBorrowed = firstName + " " + lastName;
+                        context.SaveChanges();
+                        Console.WriteLine(firstName + " " + lastName + " is borrowing " + bookName);
+                        return book;
+                    }                    
+                }                
             }
             catch (Exception ex)
             {
@@ -124,24 +117,23 @@ namespace Library.Services.BookService
                 bookName = Console.ReadLine();
                 var book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
 
-                while(book == null)
+                if(book == null)
                 {
-                    Console.WriteLine("The book is does'nt exist in Library. Try again.");
-                    bookName = Console.ReadLine();
-                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                    Console.WriteLine("The book is does'nt exist in Library.");
+                    return null;
                 }
-
-                while (book.IsBorrowed == true)
+                else if (book.IsBorrowed == true)
                 {
-                    Console.WriteLine("This book is borrowed, so it's not possible to delete. Try different book.");
-                    bookName = Console.ReadLine();
-                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                    Console.WriteLine("This book is borrowed, so it's not possible to delete.");
+                    return null;
                 }
-
-                context.Books.Remove(book);
-                context.SaveChanges();
-                Console.WriteLine("You already removed a book with name " + bookName);
-                return book;
+                else
+                {
+                    context.Books.Remove(book);
+                    context.SaveChanges();
+                    Console.WriteLine("You already removed a book with name " + bookName);
+                    return book;
+                }
             }
             catch (Exception ex)
             {
@@ -176,15 +168,16 @@ namespace Library.Services.BookService
                 var book = await context.Books
                 .FirstOrDefaultAsync(b => b.BookName == bookName);
 
-                while (book == null)
+                if (book == null)
                 {
                     Console.WriteLine("The book is does'nt exist in Library. Try again.");
-                    bookName = Console.ReadLine();
-                    book = await context.Books
-                    .FirstOrDefaultAsync(b => b.BookName == bookName);
+                    return null;
                 }
-                Console.WriteLine("Your book " + bookName);
-                return book;
+                else
+                {
+                    Console.WriteLine("Your book " + bookName);
+                    return book;
+                }
             }
             catch (Exception ex)
             {
@@ -210,42 +203,40 @@ namespace Library.Services.BookService
                 if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
-                while (user == null)
+                if (user == null)
                 {
-                    Console.WriteLine("User doesn't exist. Please try again.");
-                    name = Console.ReadLine();
-                    firstName = name.Split(' ')[0];
-                    lastName = name.Split(' ')[1];
-                    name = firstName + " " + lastName;
-                    if (firstName == null) firstName = "";
-                    if (lastName == null) lastName = "";
-                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                    Console.WriteLine("User doesn't exist.");
+                    return null;
                 }
-                Console.WriteLine("Please enter a name of book you want a return.");
-
-                bookName = Console.ReadLine();
-                var book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
-
-                while (book == null)
+                else
                 {
-                    Console.WriteLine("Book is not exist in Library. Try again.");
+                    Console.WriteLine("Please enter a name of book you want a return.");
+
                     bookName = Console.ReadLine();
-                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
-                }
-                while (book.IsBorrowed == false)
-                {
-                    Console.WriteLine("Book is not borrowed. Try different book.");
-                    bookName = Console.ReadLine();
-                    book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
-                }
+                    var book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
 
-                user.IsBorrowing = false;
-                book.IsBorrowed = false;
-                book.UserNameOfBorrowed = null;
-                context.SaveChanges();
+                    if (book == null)
+                    {
+                        Console.WriteLine("Book is not exist in Library.");
+                        return null;
+                    }
+                    else if (book.IsBorrowed == false)
+                    {
+                        Console.WriteLine("Book is not borrowed.");
+                        return null;
+                    }
+                    else
+                    {
+                        user.IsBorrowing = false;
+                        book.IsBorrowed = false;
+                        book.UserNameOfBorrowed = null;
+                        context.SaveChanges();
 
-                Console.WriteLine("The book " + bookName + " is returned");
-                return book;
+                        Console.WriteLine("The book " + bookName + " is returned");
+                        Console.ReadLine();
+                        return book;
+                    }                    
+                }                
             }
             catch (Exception ex)
             {

@@ -12,7 +12,6 @@ namespace Library.Services.UserService
     public class UserService : IUserService
     {
         private DataContext context = new DataContext();
-        private Book book = new Book();        
 
         public async Task<User> AddUser()
         {
@@ -30,17 +29,19 @@ namespace Library.Services.UserService
                 if (lastName == null) lastName = "";
                 var userName = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
-                while (userName != null)
+                if (userName != null)
                 {
-                    Console.WriteLine("User is already exist. Please Try again");
-                    name = Console.ReadLine();
-                    userName = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                    Console.WriteLine("User is already exist.");
+                    return null;
                 }
-                var user = new User { FirstName = firstName, LastName = lastName };
-                context.Users.Add(user);
-                context.SaveChanges();
-                Console.WriteLine("User " + firstName + " " + lastName + " is added. ");
-                return user;
+                else
+                {
+                    var user = new User { FirstName = firstName, LastName = lastName };
+                    context.Users.Add(user);
+                    context.SaveChanges();
+                    Console.WriteLine("User " + firstName + " " + lastName + " is added. ");
+                    return user;
+                }   
             }
             catch (Exception ex)
             {
@@ -65,34 +66,24 @@ namespace Library.Services.UserService
                 if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
-                while (user == null)
+                if (user == null)
                 {
-                    Console.WriteLine("The user is does'nt exist in Library. Try again.");
-                    name = Console.ReadLine();
-                    firstName = name.Split(' ')[0];
-                    lastName = name.Split(' ')[1];
-                    name = firstName + " " + lastName;
-                    if (firstName == null) firstName = "";
-                    if (lastName == null) lastName = "";
-                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                    Console.WriteLine("The user is does'nt exist in Library.");
+                    return null;
                 }
 
-                if (user.IsBorrowing == true)
+                else if (user.IsBorrowing == true)
                 {
-                    Console.WriteLine("This user borrowing a book, so it's not possible delete user. Try different Book.");
-                    name = Console.ReadLine();
-                    firstName = name.Split(' ')[0];
-                    lastName = name.Split(' ')[1];
-                    name = firstName + " " + lastName;
-                    if (firstName == null) firstName = "";
-                    if (lastName == null) lastName = "";
-                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                    Console.WriteLine("This user borrowing a book, so it's not possible delete user.");
+                    return null;
                 }
-
-                context.Users.Remove(user);
-                context.SaveChanges();
-                Console.WriteLine("You already removed an user with name " + firstName + " " + lastName);
-                return user;
+                else
+                {
+                    context.Users.Remove(user);
+                    context.SaveChanges();
+                    Console.WriteLine("You already removed an user with name " + firstName + " " + lastName);
+                    return user;
+                }                
             }
             catch (Exception ex)
             {
@@ -134,36 +125,32 @@ namespace Library.Services.UserService
                 if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
 
-                while (user == null)
+                if (user == null)
                 {
-                    Console.WriteLine("User is not exit in Library. Try Again");
-                    name = Console.ReadLine();
-                    firstName = name.Split(' ')[0];
-                    lastName = name.Split(' ')[1];
-                    name = firstName + " " + lastName;
-                    if (firstName == null) firstName = "";
-                    if (lastName == null) lastName = "";
-                    user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                    Console.WriteLine("User is not exit in Library.");
+                    return null;
                 }
-
-                var books = await context.Books
+                else
+                {
+                    var books = await context.Books
                     .Where(b => b.UserNameOfBorrowed == name)
                     .Select(b => b.BookName).ToListAsync();
-                count = 1;
+                    count = 1;
 
-                foreach (var book in books)
-                {
-                    Console.WriteLine("Books of borrowed User:\n" + count + ".) " + book + "\n");
-                    count++;
-                }
-                return user;
+                    foreach (var book in books)
+                    {
+                        Console.WriteLine("Books of borrowed User:\n" + count + ".) " + book + "\n");
+                        count++;
+                    }
+                    Console.ReadLine();
+                    return user;
+                }                
             }
             catch (Exception ex)
             {
                 Console.WriteLine("\nMessage ---\n{0}", ex.Message);
                 return null;
-            }
-            
+            }            
         }
 
         public async Task<User> GetUser()
@@ -182,20 +169,16 @@ namespace Library.Services.UserService
                 if (lastName == null) lastName = "";
                 var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName & u.LastName == lastName);
 
-                while (user == null)
+                if (user == null)
                 {
-                    Console.WriteLine("The user is does'nt exist in Library.Try again.");
-                    name = Console.ReadLine();
-                    firstName = name.Split(' ')[0];
-                    lastName = name.Split(' ')[1];
-                    name = firstName + " " + lastName;
-                    if (firstName == null) firstName = "";
-                    if (lastName == null) lastName = "";
-                    user = await context.Users
-                    .FirstOrDefaultAsync(u => u.FirstName == firstName & u.LastName == lastName);
+                    Console.WriteLine("The user is does'nt exist in Library.");
+                    return null;
                 }
-                Console.WriteLine("Your requested user: " + firstName + " " + lastName);
-                return user;
+                else
+                {
+                    Console.WriteLine("Your requested user: " + firstName + " " + lastName);
+                    return user;
+                }
             }
             catch (Exception ex)
             {
