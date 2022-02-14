@@ -9,6 +9,8 @@ namespace Library.Services.BookService
 {
     public interface IBookService
     {
+        public bool Close { get; set; }
+
         Task<Book> AddBook();
         Task<Book> DeleteBook();
         Task<Book> GetBook();

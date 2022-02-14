@@ -13,6 +13,8 @@ namespace Library.Services.BookService
     {
         private DataContext context = new DataContext();
 
+        public bool Close { get; set; }
+
         public async Task<Book> AddBook()
         {
             try
@@ -75,7 +77,8 @@ namespace Library.Services.BookService
                 }
                 else
                 {
-                    Console.WriteLine("Please write a first name and last name of the person to whom you want to borrow the book");
+                    Console.WriteLine("\nYou want a borrow book of name " + bookName);
+                    Console.WriteLine("\nPlease write a first name and last name of the person to whom you want to borrow the book");
                     string name = Console.ReadLine();
                     firstName = name.Split(' ')[0];
                     lastName = name.Split(' ')[1];

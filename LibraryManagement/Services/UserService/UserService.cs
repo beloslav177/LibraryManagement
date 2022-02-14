@@ -1,5 +1,6 @@
 ﻿using Library.Data;
 using Library.Model;
+using LibraryManagement;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace Library.Services.UserService
     public class UserService : IUserService
     {
         private DataContext context = new DataContext();
+
+        public bool Close { get ; set ; }
 
         public async Task<User> AddUser()
         {

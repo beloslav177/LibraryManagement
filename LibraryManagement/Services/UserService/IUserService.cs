@@ -9,6 +9,8 @@ namespace Library.Services.UserService
 {
     public interface IUserService
     {
+        public bool Close { get; set; }
+
         Task<User> AddUser();
         Task<User> DeleteUser();
         Task<User> GetUser();

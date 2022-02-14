@@ -13,27 +13,26 @@ namespace LibraryManagement
 
         static void Main(string[] args)
         {
-            while (true)
+            userService.Close = true;
+            bookservice.Close = true;
+            Console.WriteLine("For start a library press 1 or 2 for close the application.");
+            string option = (Console.ReadLine());
+            if (option == "1")
             {
-                Console.WriteLine("For start a library press 1 or 2 for close the application.");
-                string option = (Console.ReadLine());
-                if (option == "1")
-                {
-                    StartLibrary();
-                }
-                else if (option == "2")
-                {
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    Console.WriteLine("Invalid option\nRetry !!!");
-                }
-            }                     
+                StartLibrary();
+            }
+            else if (option == "2")
+            {
+                Environment.Exit(0);
+            }
+            else
+            {
+                Console.WriteLine("Invalid option\nRetry !!!");
+            }
         }
         public static void StartLibrary()
         {
-            while (true)
+            while (userService.Close == true || bookservice.Close == true)
             {
                 Console.WriteLine("\nMenu\n" +
                "1)Add user\n" +
@@ -97,8 +96,8 @@ namespace LibraryManagement
                 else
                 {
                     Console.WriteLine("Invalid option\nRetry !!!");
-                }                
-            }              
+                }
+            }
         }
     }
 }
