@@ -11,8 +11,6 @@ namespace Library.Services.BookService
     {
         void PressEnter();
         void AddAuthorOfBook();
-        void FindBook();
-        void FindBookChecked();
         Task<Book> AddBook();
         Task<Book> DeleteBook();
         Task<Book> GetBook();

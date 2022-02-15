@@ -10,7 +10,6 @@ namespace Library.Services.UserService
     public interface IUserService
     {
         void FindUser();
-        void FindUserChecked();
         Task<User> AddUser();
         Task<User> DeleteUser();
         Task<User> GetUser();
