@@ -1,5 +1,6 @@
 ﻿using Library.Data;
 using Library.Model;
+using Library.Services.UserService;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -13,38 +14,76 @@ namespace Library.Services.BookService
     {
         private DataContext context = new DataContext();
 
-        public bool Close { get; set; }
+        private string authorFirstName;
+        private string authorLastName;
+        private string bookName;
+        private Book bookModel;
+        private User userModel;
+
+        public IUserService UserService { get; }
+
+        public BookService(IUserService userService)
+        {
+            UserService = userService;
+        }
+
+        public void PressEnter()
+        {
+            Console.WriteLine("\n Press Enter to go back.");
+            Console.ReadKey();
+        }
+
+        public async void AddAuthorOfBook()
+        {
+            string authorName = Console.ReadLine();
+            authorFirstName = authorName.Split(' ')[0];
+            authorLastName = authorName.Split(' ')[1];
+            authorName = authorFirstName + " " + authorLastName;
+            if (authorFirstName == null) authorFirstName = "";
+            if (authorLastName == null) authorLastName = "";
+        }
+
+        public async void FindBook()
+        {
+            bookName = Console.ReadLine();
+            bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);          
+        }
+        public async void FindBookChecked()
+        {
+            FindBook();
+            if (bookModel.BookName == null)
+            {
+                Console.WriteLine("\nThe book" + bookModel.BookName + " is does'nt exist in Library.");
+                PressEnter();
+            }
+        }
 
         public async Task<Book> AddBook()
         {
             try
             {
-                string authorFirstName;
-                string authorLastName;        
-                string bookName;
                 Console.WriteLine("Please enter a first name and last name of author a book.");
 
-                string authorName = Console.ReadLine();
-                authorFirstName = authorName.Split(' ')[0];
-                authorLastName = authorName.Split(' ')[1];
-                authorName = authorFirstName + " " + authorLastName;
-                if (authorFirstName == null) authorFirstName = "";
-                if (authorLastName == null) authorLastName = "";
-
+                AddAuthorOfBook();
+                Console.WriteLine(authorFirstName + " " + authorLastName);
                 Console.WriteLine("Please enter a name of book.");
-                bookName = Console.ReadLine();
-                var bookNameExist = await context.Books.Include(u => u.User).FirstOrDefaultAsync(b => b.BookName == bookName);
 
-                if (bookNameExist != null)
+                FindBook();
+                if (bookModel.BookName != null)
                 {
-                    Console.WriteLine("Book is already exist.");
+                    Console.WriteLine("Book " + bookModel.BookName + " is already exist.");
+                    PressEnter();
+                    return null;                    
                 }
-
-                var book = new Book { AuthorFirstName = authorFirstName, AuthorLastName = authorLastName, BookName = bookName };
-                context.Books.Add(book);
-                context.SaveChanges();
-                Console.WriteLine("Book " + bookName + " is added by " + authorFirstName + authorLastName);
-                return book;
+                else
+                {
+                    bookModel = new Book { AuthorFirstName = authorFirstName, AuthorLastName = authorLastName, BookName = bookName };
+                    context.Books.Add(bookModel);
+                    context.SaveChanges();
+                    Console.WriteLine("Book " + bookModel.BookName + " is added by " + authorFirstName + authorLastName);
+                    PressEnter();
+                    return bookModel;
+                }                
             }
             catch (Exception ex)
             {
@@ -57,50 +96,29 @@ namespace Library.Services.BookService
         {
             try
             {
-                string bookName;
-                string firstName;
-                string lastName;
                 Console.WriteLine("Please enter a name of Book you want to borrow.");
-
-                bookName = Console.ReadLine();
-                var book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-
-                if(book == null)
-                {
-                    Console.WriteLine("Book is not exist in Library.");
-                    return null;
-                }
-                else if (book.IsBorrowed == true)
+                FindBookChecked();
+                if (bookModel.IsBorrowed == true)
                 {
                     Console.WriteLine("Book is already taken, it's not possible to borrow once again.");
+                    PressEnter();
                     return null;
                 }
                 else
                 {
-                    Console.WriteLine("\nYou want a borrow book of name " + bookName);
+                    Console.WriteLine("\nYou want a borrow book of name " + bookModel.BookName);
                     Console.WriteLine("\nPlease write a first name and last name of the person to whom you want to borrow the book");
-                    string name = Console.ReadLine();
-                    firstName = name.Split(' ')[0];
-                    lastName = name.Split(' ')[1];
-                    name = firstName + " " + lastName;
-                    if (firstName == null) firstName = "";
-                    if (lastName == null) lastName = "";
-                    var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-
-                    if (user == null)
+                    UserService.FindUserChecked();
+                    if (userModel != null)
                     {
-                        Console.WriteLine("User does'nt exist. Make all borrowed process again.");
-                        return null;
-                    }
-                    else
-                    {
-                        user.IsBorrowing = true;
-                        book.IsBorrowed = true;
-                        book.UserNameOfBorrowed = firstName + " " + lastName;
+                        userModel.IsBorrowing = true;
+                        bookModel.IsBorrowed = true;
                         context.SaveChanges();
-                        Console.WriteLine(firstName + " " + lastName + " is borrowing " + bookName);
-                        return book;
-                    }                    
+                        Console.WriteLine(userModel.FirstName + " " + userModel.LastName + " is borrowing " + bookModel.BookName);
+                        PressEnter();
+                        return bookModel;
+                    }
+                    return null;
                 }                
             }
             catch (Exception ex)
@@ -114,28 +132,23 @@ namespace Library.Services.BookService
         {
             try
             {
-                string bookName;
-                Console.WriteLine("Please enter a name of the book you want to delete.");
+                Console.WriteLine("\nPlease enter a name of the book you want to delete.");
 
-                bookName = Console.ReadLine();
-                var book = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+                FindBookChecked();
 
-                if(book == null)
+                if (bookModel.IsBorrowed == true)
                 {
-                    Console.WriteLine("The book is does'nt exist in Library.");
-                    return null;
-                }
-                else if (book.IsBorrowed == true)
-                {
-                    Console.WriteLine("This book is borrowed, so it's not possible to delete.");
+                    Console.WriteLine("\nThis book" + bookModel.BookName + " is borrowed, so it's not possible to delete.");
+                    PressEnter();
                     return null;
                 }
                 else
                 {
-                    context.Books.Remove(book);
+                    context.Books.Remove(bookModel);
                     context.SaveChanges();
-                    Console.WriteLine("You already removed a book with name " + bookName);
-                    return book;
+                    Console.WriteLine("\nYou already removed a book with name " + bookModel.BookName);
+                    PressEnter();
+                    return bookModel;
                 }
             }
             catch (Exception ex)
@@ -149,9 +162,12 @@ namespace Library.Services.BookService
         {
             try
             {
+                Console.Clear();
+
                 var books = await context.Books.ToListAsync();
                 Console.WriteLine("Your library:\n");
                 books.ForEach(i => Console.Write("{0}\n", i.BookName));
+                PressEnter();
                 return books;
             }
             catch (Exception ex)
@@ -165,22 +181,16 @@ namespace Library.Services.BookService
         {
             try
             {
-                string bookName;
                 Console.WriteLine("\nPlease enter a name of the book you want to see.");
-                bookName = Console.ReadLine();
-                var book = await context.Books
-                .FirstOrDefaultAsync(b => b.BookName == bookName);
+                FindBookChecked();
 
-                if (book == null)
+                if (bookModel != null)
                 {
-                    Console.WriteLine("\nThe book is does'nt exist in Library. Try again.");
-                    return null;
+                    Console.WriteLine("\nYour book " + bookModel.BookName);
+                    PressEnter();
+                    return bookModel;
                 }
-                else
-                {
-                    Console.WriteLine("\nYour book " + bookName);
-                    return book;
-                }
+                return null;
             }
             catch (Exception ex)
             {
@@ -193,53 +203,67 @@ namespace Library.Services.BookService
         {
             try
             {
-                string bookName;
-                string firstName;
-                string lastName;
-                Console.WriteLine("\nPlease enter a user name and last name which want a return book.");
+                Console.WriteLine("\nPlease enter a first name and last name which want a return book.");
 
-                string name = Console.ReadLine();
-                firstName = name.Split(' ')[0];
-                lastName = name.Split(' ')[1];
-                name = firstName + " " + lastName;
-                if (firstName == null) firstName = "";
-                if (lastName == null) lastName = "";
-                var user = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+                UserService.FindUserChecked();
 
-                if (user == null)
+                Console.WriteLine("\nPlease enter a name of book you want a return.");
+
+                FindBookChecked();
+                if (bookModel.IsBorrowed == false)
                 {
-                    Console.WriteLine("\nUser doesn't exist.");
+                    Console.WriteLine("\nBook is not borrowed.");
+                    PressEnter();
                     return null;
                 }
                 else
                 {
-                    Console.WriteLine("\nPlease enter a name of book you want a return.");
+                    userModel.IsBorrowing = false;
+                    bookModel.IsBorrowed = false;
+                    context.SaveChanges();
 
-                    bookName = Console.ReadLine();
-                    var book = await context.Books.FirstOrDefaultAsync(b => b.BookName.Equals(bookName));
+                    Console.WriteLine("\nThe book " + bookName + " is returned");
+                    PressEnter();
+                    return bookModel;
+                }                    
+                              
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
+                return null;
+            }
+        }
 
-                    if (book == null)
+        public async Task<List<string>> GetBorrowedBooks()
+        {
+            try
+            {
+                int count = 0;
+                Console.WriteLine("\nPlease enter first name and last name you want to see the books have borrowed");
+
+                UserService.FindUserChecked();
+                FindBookChecked();
+
+                if (userModel != null)
+                {
+                    var books = await context.Books.Include(u => u.User).Where(b => b.IsBorrowed).Select(b => b.BookName).ToListAsync();
+                    count = 1;
+
+                    foreach (var book in books)
                     {
-                        Console.WriteLine("\nBook is not exist in Library.");
-                        return null;
+                        Console.WriteLine("\nBooks of borrowed User:\n" + count + ".) " + book + "\n");
+                        count++;
                     }
-                    else if (book.IsBorrowed == false)
+                    if (books == null)
                     {
-                        Console.WriteLine("\nBook is not borrowed.");
-                        return null;
+                        Console.WriteLine("\n User has not borrowed books.");
+                        PressEnter();
                     }
-                    else
-                    {
-                        user.IsBorrowing = false;
-                        book.IsBorrowed = false;
-                        book.UserNameOfBorrowed = null;
-                        context.SaveChanges();
-
-                        Console.WriteLine("\nThe book " + bookName + " is returned");
-                        Console.ReadLine();
-                        return book;
-                    }                    
-                }                
+                    PressEnter();
+                    return books;
+                }
+                return null;
             }
             catch (Exception ex)
             {

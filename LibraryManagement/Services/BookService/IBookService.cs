@@ -9,13 +9,16 @@ namespace Library.Services.BookService
 {
     public interface IBookService
     {
-        public bool Close { get; set; }
-
+        void PressEnter();
+        void AddAuthorOfBook();
+        void FindBook();
+        void FindBookChecked();
         Task<Book> AddBook();
         Task<Book> DeleteBook();
         Task<Book> GetBook();
         Task<List<Book>> GetAllBooks();
         Task<Book> BorrowBook();
         Task<Book> ReturnBook();
+        Task<List<string>> GetBorrowedBooks();
     }
 }

@@ -18,8 +18,6 @@ namespace Library.Model
 
         public bool IsBorrowed { get; set; } = false;
 
-        public string UserNameOfBorrowed { get; set; }
-
         public User User { get; set; }
     }
 }

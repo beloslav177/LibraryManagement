@@ -9,12 +9,11 @@ namespace Library.Services.UserService
 {
     public interface IUserService
     {
-        public bool Close { get; set; }
-
+        void FindUser();
+        void FindUserChecked();
         Task<User> AddUser();
         Task<User> DeleteUser();
         Task<User> GetUser();
         Task<List<User>> GetAllUsers();
-        Task<User> GetBorrowedBooks();
     }
 }

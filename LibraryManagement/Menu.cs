@@ -29,17 +29,26 @@ namespace LibraryManagement
             {
                 Render();
                 Console.Write("Choose a option. => " );
-                int id = int.Parse(Console.ReadLine());
-                var isInMenu = _Items.FirstOrDefault(x => x.Id == id);
-                if (isInMenu == null)
+                
+                string input = (Console.ReadLine());
+                if (int.TryParse(input, out int id))
                 {
-                    Console.WriteLine("Wrong choose.");
-                    Thread.Sleep(2000);
+                    var isInMenu = _Items.FirstOrDefault(x => x.Id == id);
+                    if (isInMenu == null)
+                    {
+                        Console.WriteLine("Wrong choose.");
+                        Thread.Sleep(2000);
+                    }
+                    else
+                    {
+                        return id;
+                    }
                 }
                 else
                 {
-                    return id;
-                }                
+                    Console.WriteLine("Wrong choose.");
+                    Thread.Sleep(2000);
+                }                      
             }             
             while (true);
         }
@@ -50,7 +59,7 @@ namespace LibraryManagement
             Console.WriteLine(_Title);
             foreach (var item in _Items) 
             {
-                System.Console.WriteLine(item.Text);
+                Console.WriteLine(item.Text);
             }
         }
     }

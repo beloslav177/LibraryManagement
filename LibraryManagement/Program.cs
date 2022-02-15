@@ -8,12 +8,12 @@ namespace LibraryManagement
 {
     internal class Program
     {
-        public static UserService userService = new UserService();
-        public static BookService bookservice = new BookService();
+        public static BookService bookService = new BookService(userService);
+        public static UserService userService = new UserService(bookService);
 
-        public static Menu menu = new Menu("MainMenu");
-        public static Menu userMenu = new Menu("UserMenu");
-        public static Menu bookMenu = new Menu("BookMenu");
+        public static Menu menu = new Menu("Main Menu");
+        public static Menu userMenu = new Menu("User Menu");
+        public static Menu bookMenu = new Menu("Book Menu");
 
         static void Main(string[] args)
         {
@@ -51,19 +51,19 @@ namespace LibraryManagement
                             switch (book)
                             {
                                 case 1:
-                                    bookservice.AddBook();
+                                    bookService.AddBook();
                                     break;
                                 case 2:
-                                    bookservice.DeleteBook();
+                                    bookService.DeleteBook();
                                     break;
                                 case 3:
-                                    bookservice.GetAllBooks();
+                                    bookService.GetAllBooks();
                                     break;
                                 case 4:
-                                    bookservice.BorrowBook();
+                                    bookService.BorrowBook();
                                     break;
                                 case 5:
-                                    bookservice.ReturnBook();
+                                    bookService.ReturnBook();
                                     break;
                                 case 6:
                                     bookDone = true;
@@ -90,7 +90,7 @@ namespace LibraryManagement
                                     userService.GetAllUsers();
                                     break;
                                 case 4:
-                                    userService.GetBorrowedBooks();
+                                    bookService.GetBorrowedBooks();
                                     break;
                                 case 5:
                                     userService.GetUser();
@@ -111,75 +111,6 @@ namespace LibraryManagement
                         break;
                 }
             }            
-        }
-        public static void StartLibrary()
-        {
-            while (userService.Close == true || bookservice.Close == true)
-            {
-                Console.WriteLine("\nMenu\n" +
-               "1)Add user\n" +
-               "2)Delete user\n" +
-               "3)Show users\n" +
-               "4)Show borrowed books for user\n" +
-               "5)Search user\n" +
-               "6)Add book\n" +
-               "7)Delete book\n" +
-               "8)Show all books\n" +
-               "9)Borrow book\n" +
-               "10)Return book\n" +
-               "11)End of application\n");
-                Console.Write("Choose your option from menu :");
-                
-                string option = Console.ReadLine();
-                if (option == "1")
-                {
-                    userService.AddUser();
-                }
-                else if (option == "2")
-                {
-                    userService.DeleteUser();
-                }
-                else if (option == "3")
-                {
-                    userService.GetAllUsers();
-                }
-                else if (option == "4")
-                {
-                    userService.GetBorrowedBooks();
-                }
-                else if (option == "5")
-                {
-                    userService.GetUser();
-                }
-                else if (option == "6")
-                {
-                    bookservice.AddBook();
-                }
-                else if (option == "7")
-                {
-                    bookservice.DeleteBook();
-                }
-                else if (option == "8")
-                {
-                    bookservice.GetAllBooks();
-                }
-                else if (option == "9")
-                {
-                    bookservice.BorrowBook();
-                }
-                else if (option == "10")
-                {
-                    bookservice.ReturnBook();
-                }
-                else if (option == "11")
-                {
-                    Environment.Exit(0);
-                }         
-                else
-                {
-                    Console.WriteLine("Invalid option\nRetry !!!");
-                }
-            }
         }
     }
 }
