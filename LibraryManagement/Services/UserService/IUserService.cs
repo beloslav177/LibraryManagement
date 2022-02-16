@@ -9,6 +9,10 @@ namespace Library.Services.UserService
 {
     public interface IUserService
     {
+        void Exist();
+        void NotExist();
+        void IsBorrowing();
+        void IsNotBorrowing();
         void FindUser();
         Task<User> AddUser();
         Task<User> DeleteUser();

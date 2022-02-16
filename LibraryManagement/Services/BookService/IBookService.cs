@@ -9,7 +9,6 @@ namespace Library.Services.BookService
 {
     public interface IBookService
     {
-        void PressEnter();
         void AddAuthorOfBook();
         Task<Book> AddBook();
         Task<Book> DeleteBook();

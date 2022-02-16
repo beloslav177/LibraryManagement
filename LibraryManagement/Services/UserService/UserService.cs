@@ -45,6 +45,30 @@ namespace Library.Services.UserService
             }                       
         }
 
+        public void Exist()
+        {
+            Console.Clear();
+            Console.WriteLine("\nAlready exist in Library.");
+        }   
+
+        public void NotExist()
+        {
+            Console.Clear();
+            Console.WriteLine("\nDoes'nt exist in Library.");
+        }
+
+        public void IsBorrowing()
+        {
+            Console.Clear();
+            Console.WriteLine("\nAlready borrowed, so it's not possible delete.");
+        }
+
+        public void IsNotBorrowing()
+        {
+            Console.Clear();
+            Console.WriteLine("\nBook is not borrowed.");
+        }
+
         public async Task<User> AddUser()
         {
             try
@@ -58,15 +82,17 @@ namespace Library.Services.UserService
 
                 if (userModel != null)
                 {
-                    Console.Clear();
-                    Console.WriteLine("\nUser is already exist.");
+                    Exist();
                     return null;
                 }
-                var user = new User { FirstName = firstName, LastName = lastName };
-                context.Users.Add(user);
-                context.SaveChanges();
-                Console.WriteLine("\nUser " + firstName + " " + lastName + " is added. ");
-                return user;                
+                else
+                {
+                    var user = new User { FirstName = firstName, LastName = lastName };
+                    context.Users.Add(user);
+                    context.SaveChanges();
+                    Console.WriteLine("\nUser " + firstName + " " + lastName + " is added. ");
+                    return user;
+                }                               
             }
             catch (Exception ex)
             {
@@ -88,14 +114,12 @@ namespace Library.Services.UserService
 
                 if (userModel == null)
                 {
-                    Console.Clear();
-                    Console.WriteLine("\nThe user is does'nt exist in Library.");
+                    NotExist();
                     return null;
                 }
                 else if (userModel.IsBorrowing == true)
                 {
-                    Console.Clear();
-                    Console.WriteLine("\nThis user borrowing a book, so it's not possible delete user.");
+                    IsBorrowing();
                     return null;
                 }
                 else
@@ -103,7 +127,7 @@ namespace Library.Services.UserService
                     Console.Clear();
                     context.Users.Remove(userModel);
                     context.SaveChanges();
-                    Console.WriteLine("\nYou already removed an user with name " + firstName + " " + lastName);
+                    Console.WriteLine("\nYou already removed an user with name " + userModel.FirstName + " " + userModel.LastName);
                     return userModel;
                 }                
             }
@@ -143,17 +167,15 @@ namespace Library.Services.UserService
 
                 if (userModel == null)
                 {
-                    Console.Clear();
-                    Console.WriteLine("\nThe user is does'nt exist in Library.");
+                    NotExist();
                     return null;
                 }
-                if (userModel != null)
+                else
                 {
                     Console.Clear();
-                    Console.WriteLine("\nYour requested user: " + firstName + " " + lastName);
+                    Console.WriteLine("\nYour requested user: " + userModel.FirstName + " " + userModel.LastName);
                     return userModel;
                 }
-                return null;
             }
             catch (Exception ex)
             {
