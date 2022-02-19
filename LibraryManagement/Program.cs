@@ -1,41 +1,42 @@
-﻿using Library.Data;
-using Library.Model;
-using Library.Services.BookService;
+﻿using Library.Services.BookService;
 using Library.Services.UserService;
+using LibraryManagement.Services.MessageService;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LibraryManagement
 {
-    internal class Program
+    public class Program
     {
         public static BookService bookService = new BookService(userService);
         public static UserService userService = new UserService(bookService);
+        public static MessageService messageService = new MessageService();
 
         public static Menu menu = new Menu("Main Menu");
         public static Menu userMenu = new Menu("User Menu");
         public static Menu bookMenu = new Menu("Book Menu");
 
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             menu.AddMenuItem(1, "Book Service");
             menu.AddMenuItem(2, "User Service");
-            menu.AddMenuItem(6, "Exit");
+            menu.AddMenuItem(7, "Exit");
 
             userMenu.AddMenuItem(1, "Add user");
             userMenu.AddMenuItem(2, "Delete user");
             userMenu.AddMenuItem(3, "Show users");
             userMenu.AddMenuItem(4, "Show borrowed books for user");
             userMenu.AddMenuItem(5, "Search user");
-            userMenu.AddMenuItem(6, "Back");
+            userMenu.AddMenuItem(7, "Back");
 
             bookMenu.AddMenuItem(1, "Add book");
             bookMenu.AddMenuItem(2, "Delete book");
             bookMenu.AddMenuItem(3, "Show all books");
             bookMenu.AddMenuItem(4, "Borrow book");
             bookMenu.AddMenuItem(5, "Return book");
-            bookMenu.AddMenuItem(6, "Back");           
-
-            //TODO: no replication, borrow
+            bookMenu.AddMenuItem(6, "Search book");
+            bookMenu.AddMenuItem(7, "Back");           
 
             bool done = false;
             while (!done)
@@ -51,21 +52,24 @@ namespace LibraryManagement
                             switch (book)
                             {
                                 case 1:
-                                    bookService.AddBook();
+                                    await bookService.AddBookAsync();
                                     break;
                                 case 2:
-                                    bookService.DeleteBook();
+                                    await bookService.DeleteBookAsync();
                                     break;
                                 case 3:
-                                    bookService.GetAllBooks();
+                                    await bookService.GetAllBooksAsync();
                                     break;
                                 case 4:
-                                    bookService.BorrowBook();
+                                    await bookService.BorrowBookAsync();
                                     break;
                                 case 5:
-                                    bookService.ReturnBook();
+                                    await bookService.ReturnBookAsync();
                                     break;
                                 case 6:
+                                    await bookService.GetBookAsync();
+                                    break;
+                                case 7:
                                     bookDone = true;
                                     break;
                                 default:
@@ -81,21 +85,34 @@ namespace LibraryManagement
                             switch (user)
                             {
                                 case 1:
-                                    userService.AddUser();
+                                    await userService.AddUserAsync();
                                     break;
                                 case 2:
-                                    userService.DeleteUser();
+                                    await userService.DeleteUserAsync();
                                     break;
                                 case 3:
-                                    userService.GetAllUsers();
+                                    await userService.GetAllUsersAsync();
                                     break;
                                 case 4:
-                                    bookService.GetBorrowedBooks();
+                                    var userModel = await userService.FindUserOrCreateNewAsync("Booklist");
+                                    var bookList = await bookService.GetBorrowedBooksAsync(userModel);
+                                    if (!bookList.Any())
+                                    {
+                                        messageService.NotExist("Books for " + userModel.UserName);
+                                        messageService.PressAny();
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("\nBorrowed Books of " + userModel.UserName + ": \n" );
+                                        bookList.ForEach(i => Console.Write("{0}", i.BookName));
+                                        messageService.PressAny();
+                                    }
                                     break;
                                 case 5:
-                                    userService.GetUser();
+                                    await userService.GetUserAsync();
                                     break;
-                                case 6:
+                                case 7:
                                     userDone = true;
                                     break;
                                 default:
@@ -104,7 +121,7 @@ namespace LibraryManagement
 
                         }
                         break;
-                    case 6:
+                    case 7:
                         done = true;                        
                         break;
                     default:

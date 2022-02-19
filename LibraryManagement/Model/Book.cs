@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Library.Model
+﻿namespace Library.Model
 {
     public class Book
     {
@@ -14,9 +8,9 @@ namespace Library.Model
 
         public string AuthorLastName { get; set; }
 
-        public string BookName { get; set; }
+        public string AuthorName => AuthorFirstName + " " + AuthorLastName;
 
-        public bool IsBorrowed { get; set; } = false;
+        public string BookName { get; set; }
 
         public User User { get; set; }
     }

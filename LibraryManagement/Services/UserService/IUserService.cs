@@ -1,22 +1,15 @@
 ﻿using Library.Model;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Library.Services.UserService
 {
     public interface IUserService
     {
-        void Exist();
-        void NotExist();
-        void IsBorrowing();
-        void IsNotBorrowing();
-        void FindUser();
-        Task<User> AddUser();
-        Task<User> DeleteUser();
-        Task<User> GetUser();
-        Task<List<User>> GetAllUsers();
+        Task<User> FindUserOrCreateNewAsync(string message);
+        Task<User> AddUserAsync();
+        Task DeleteUserAsync();
+        Task<User> GetUserAsync();
+        Task<List<User>> GetAllUsersAsync();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Library.Data;
 using Library.Model;
 using Library.Services.UserService;
+using LibraryManagement.Services.MessageService;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,282 +13,274 @@ namespace Library.Services.BookService
     public class BookService : IBookService
     {
         private DataContext context = new DataContext();
+        private MessageService messageService = new MessageService();
 
-        public string authorFirstName;
-        public string authorLastName;
-        public string bookName;
-        public Book bookModel;
-        public User userModel;
+        private readonly IUserService userService;
 
-        public IUserService UserService { get; }
-
-        public BookService(IUserService userService)
+        public BookService(IUserService userService )
         {
-            UserService = userService;
+            this.userService = userService;
         }
 
-        public async void AddAuthorOfBook()
+        public async Task<Book> AddAuthorOfBookAsync(string message)
         {
+            string authorFirstName = "";
+            string authorLastName = "";
+
+            Console.WriteLine("Please enter a first name and last name of author a book.");
             string authorName = Console.ReadLine();
-            authorFirstName = authorName.Split(' ')[0];
-            authorLastName = authorName.Split(' ')[1];
-            authorName = authorFirstName + " " + authorLastName;
-            if (authorFirstName == null) authorFirstName = "";
-            if (authorLastName == null) authorLastName = "";
+            var tokens = authorName.Split(' ');
+            authorFirstName = tokens[0];
+            if (tokens.Length > 1)
+            {
+                authorLastName = tokens[1];
+            }
+
+            string bookName = "";
+            Console.WriteLine($"Please enter a name of book for {message}");
+
+            bookName = Console.ReadLine();
+            var b = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+            if (b != null)
+            {
+                return b;
+            }
+            else
+            {
+                return new Book { AuthorFirstName = authorFirstName, AuthorLastName = authorLastName , BookName = bookName };
+            }
         }
 
-        public async Task<Book> AddBook()
+        public async Task<Book> FindBookOrCreateNewAsync(string message)
+        { 
+            string bookName = "";
+            Console.WriteLine($"Please enter a name of book for {message}");
+
+            bookName = Console.ReadLine();
+            var b = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
+            if (b != null)
+            {
+                return b;
+            }
+            else
+            {
+                return new Book { BookName = bookName };
+            }
+        }
+
+        public async Task<Book> AddBookAsync()
         {
             try
             {
-                Console.Clear();
-                Console.WriteLine("Please enter a first name and last name of author a book.");
-
-                AddAuthorOfBook();
-                Console.WriteLine("Please enter a name of book.");
-
-                bookName = Console.ReadLine();
-                bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-
-                if (bookModel.BookName != null)
+                var book = await AddAuthorOfBookAsync("add book");
+                if (book.Id == default)
                 {
-                    UserService.Exist();
-                    return null;                    
+                    context.Books.Add(book);
+                    context.SaveChanges();
+                    Console.WriteLine("\nBook " + book.BookName + " is added by Author: " + book.AuthorName);
                 }
                 else
                 {
-                    var book = new Book { AuthorFirstName = authorFirstName, AuthorLastName = authorLastName, BookName = bookName };
-                    context.Books.Add(bookModel);
-                    context.SaveChanges();
-                    Console.WriteLine("Book " + bookModel.BookName + " is added by " + authorFirstName + authorLastName);
-                    return book;
-                }                
+                    messageService.Exist(book.BookName);
+                }
+                messageService.PressAny();
+                return book;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
+                messageService.Error(ex);
                 return null;
             }            
-        }
+        }        
 
-        public async Task<Book> BorrowBook()
+        public async Task DeleteBookAsync()
         {
             try
             {
-                Console.Clear();
-                Console.WriteLine("Please enter a name of Book you want to borrow.");
-                bookName = Console.ReadLine();
-                bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (bookModel.BookName == null)
+                var book = await FindBookOrCreateNewAsync("delete Book");
+                var userModel = new User();
+
+                if (book.Id == default)
                 {
-                    UserService.NotExist();
-                    return null;
-                }
-                if (bookModel.IsBorrowed == true)
-                {
-                    UserService.IsBorrowing();
-                    return null;
+                    messageService.NotExist(book.BookName);
                 }
                 else
                 {
-                    Console.WriteLine("\nYou want a borrow book of name " + bookModel.BookName);
-                    Console.WriteLine("\nPlease write a first name and last name of the person to whom you want to borrow the book");
-                    UserService.FindUser();
-                    userModel = await context.Users.FirstOrDefaultAsync(u => u.FirstName == userModel.FirstName && u.LastName == userModel.LastName);
-
-                    if (userModel != null)
+                    if ((await GetBorrowedBooksAsync(userModel)).Count == 0)
                     {
-                        userModel.IsBorrowing = true;
-                        bookModel.IsBorrowed = true;
+                        context.Books.Remove(book);
                         context.SaveChanges();
-                        Console.WriteLine(userModel.FirstName + " " + userModel.LastName + " is borrowing " + bookModel.BookName);
-                        return bookModel;
+                        Console.WriteLine("\nYou already removed book with name " + book.BookName  + " from " + book.AuthorName);
                     }
-                    return null;
-                }                
+                    else
+                    {
+                        Console.WriteLine($"\n {book.BookName} book is'nt possible to delete, cause is already borrowed.");
+                    }
+                }
+                messageService.PressAny();
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }            
-        }
-
-        public async Task<Book> DeleteBook()
-        {
-            try
-            {
-                Console.Clear();
-                Console.WriteLine("\nPlease enter a name of the book you want to delete.");
-
-                bookName = Console.ReadLine();
-                bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (bookModel.BookName == null)
-                {
-                    UserService.NotExist();
-                    return null;
-                }
-
-                if (bookModel.IsBorrowed == true)
-                {
-                    UserService.IsBorrowing();
-                    return null;
-                }
-                else
-                {
-                    Console.Clear();
-                    context.Books.Remove(bookModel);
-                    context.SaveChanges();
-                    Console.WriteLine("\nYou already removed a book with name " + bookModel.BookName);
-                    return bookModel;
-                }
+                messageService.Error(ex);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }            
         }
 
-        public async Task<List<Book>> GetAllBooks()
+        public async Task<List<Book>> GetAllBooksAsync()
         {
             try
             {
-                Console.Clear();
                 var books = await context.Books.ToListAsync();
-                Console.WriteLine("Your library:\n");
-                books.ForEach(i => Console.Write("{0}", i.BookName));
-                return books;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }            
-        }
-
-        public async Task<Book> GetBook()
-        {
-            try
-            {
-                Console.WriteLine("\nPlease enter a name of the book you want to see.");
-
-                bookName = Console.ReadLine();
-                bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-
-                if (bookModel.BookName == null)
+                if (!books.Any())
                 {
-                    UserService.NotExist();
+                    messageService.NotExist("Books");
+                    messageService.PressAny();
                     return null;
                 }
                 else
                 {
-                    Console.Clear();
-                    Console.WriteLine("\nYour book " + bookModel.BookName);
-                    return bookModel;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }
-        }
-
-        public async Task<Book> ReturnBook()
-        {
-            try
-            {
-                Console.Clear();
-                Console.WriteLine("\nPlease enter a first name and last name which want a return book.");
-
-                UserService.FindUser();
-                userModel = await context.Users.FirstOrDefaultAsync(u => u.FirstName == userModel.FirstName && u.LastName == userModel.LastName);
-
-                if (userModel == null)
-                {
-                    UserService.NotExist();
-                    return null;
-                }
-
-                Console.WriteLine("\nPlease enter a name of book you want a return.");
-
-                bookName = Console.ReadLine();
-                bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (bookModel.BookName == null)
-                {
-                    UserService.NotExist();
-                    return null;
-                }
-                else if (bookModel.IsBorrowed == false)
-                {
-                    UserService.IsNotBorrowing();
-                    return null;
-                }
-                else
-                {
-                    userModel.IsBorrowing = false;
-                    bookModel.IsBorrowed = false;
-                    context.SaveChanges();
-
-                    Console.WriteLine("\nThe book " + bookName + " is returned");
-                    return bookModel;
-                }                    
-                              
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }
-        }
-
-        public async Task<List<string>> GetBorrowedBooks()
-        {
-            try
-            {
-                int count = 0;
-                Console.WriteLine("\nPlease enter first name and last name you want to see the books have borrowed");
-
-                UserService.FindUser();
-                userModel = await context.Users.FirstOrDefaultAsync(u => u.FirstName == userModel.FirstName && u.LastName == userModel.LastName);
-
-                if (userModel == null)
-                {
-                    UserService.NotExist();
-                    return null;
-                }
-
-                bookName = Console.ReadLine();
-                bookModel = await context.Books.FirstOrDefaultAsync(b => b.BookName == bookName);
-                if (bookModel.BookName == null)
-                {
-                    UserService.NotExist();
-                    return null;
-                }
-
-                if (userModel != null)
-                {
-                    var books = await context.Books.Include(u => u.User).Where(b => b.IsBorrowed).Select(b => b.BookName).ToListAsync();
-                    count = 1;
-
-                    if (books == null)
-                    {
-                        UserService.IsNotBorrowing();
-                        return null;
-                    }
-                    foreach (var book in books)
-                    {
-                        Console.WriteLine("\nBooks of borrowed User:\n" + count + ".) " + book + "\n");
-                        count++;
-                    }
+                    Console.WriteLine("Your library of books:\n");
+                    books.ForEach(i => Console.WriteLine("{0}", i.BookName));
+                    messageService.PressAny();
                     return books;
                 }
-                return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
+                messageService.Error(ex);
+                return null;
+            }            
+        }
+
+        public async Task<Book> GetBookAsync()
+        {
+            try
+            {
+                var bookModel = await FindBookOrCreateNewAsync("search");
+                
+                if (bookModel == null)
+                {
+                    messageService.NotExist(bookModel.BookName);
+                    messageService.PressAny();
+                    return null;
+                }
+                else
+                {
+                    Console.WriteLine("\nSearched book: " + bookModel.BookName);
+                    messageService.PressAny();
+                    return bookModel;
+                }
+            }
+            catch (Exception ex)
+            {
+                messageService.Error(ex);
+                return null;
+            }
+        }
+
+        public async Task<Book> BorrowBookAsync()
+        {
+            try
+            {
+                var bookModel = await FindBookOrCreateNewAsync("borrow the Book");
+
+                bookModel = await context.Books.Include(u => u.User).FirstOrDefaultAsync(b => b.BookName == bookModel.BookName);
+
+                if (bookModel == null)
+                {
+                    messageService.NotExist("Requested book");
+                    messageService.PressAny();
+                    return null;
+                }
+                else if (bookModel.User != default)
+                {
+                    messageService.IsBorrowing(bookModel.BookName);
+                    messageService.PressAny();
+                    return null;
+                }
+                else
+                {
+                    Console.WriteLine("\nYou want a borrow book: " + bookModel.BookName + "\n");
+                    var userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
+
+                    if (userModel.Id != default)
+                    {
+                        bookModel.User = userModel;
+                        context.SaveChanges();
+                        Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
+                        messageService.PressAny();
+                        return bookModel;
+                    }
+                    else
+                    {
+                        messageService.NotExist(bookModel.BookName);
+                        messageService.PressAny();
+                        return null;
+                    }
+                }                
+            }
+            catch (Exception ex)
+            {
+                messageService.Error(ex);
+                return null;
+            }
+        }
+
+        public async Task<Book> ReturnBookAsync()
+        {
+            try
+            {
+                var userModel = await userService.FindUserOrCreateNewAsync("return the Book");
+                if (userModel.Id != default)
+                {
+                    var bookModel = await FindBookOrCreateNewAsync("return the Book");
+                    if (bookModel != default)
+                    {
+                        messageService.NotExist(bookModel.BookName);
+                        messageService.PressAny();
+                        return null;
+                    }
+                    else if (bookModel.User != default)
+                    {
+                        messageService.IsBorrowing(bookModel.BookName);
+                        messageService.PressAny();
+                        return bookModel;
+                    }
+                    else
+                    {
+                        bookModel.User = null;
+                        context.SaveChanges();
+                        Console.WriteLine(userModel.UserName + " return book with Title" + bookModel.BookName);
+                        messageService.PressAny();
+                        return bookModel;
+                    }                    
+                }
+                else
+                {
+                    messageService.NotExist(userModel.UserName);
+                    messageService.PressAny();
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                messageService.Error(ex);
+                return null;
+            }
+        }
+
+        public async Task<List<Book>> GetBorrowedBooksAsync(User userModel)
+        {
+            try
+            {
+                if (userModel != null)
+                {
+                    return await context.Books.Include(u => u.User).Where(b => b.User != default).ToListAsync();                    
+                }
+                return new List<Book>();
+            }
+            catch (Exception ex)
+            {
+                messageService.Error(ex);
                 return null;
             }
         }

@@ -1,12 +1,11 @@
 ﻿using Library.Data;
 using Library.Model;
 using Library.Services.BookService;
-using LibraryManagement;
+using LibraryManagement.Services.MessageService;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,171 +14,142 @@ namespace Library.Services.UserService
     public class UserService : IUserService
     {
         private DataContext context = new DataContext();
-
-        public string firstName;
-        public string lastName;
-        public User userModel;
-
-        public IBookService BookService { get; }
+        private MessageService messageService = new MessageService();
+        private readonly IBookService bookService;
 
         public UserService(IBookService bookService)
         {
-            BookService = bookService;
+            this.bookService = bookService;
         }
-
-        public async void FindUser()
+        public async Task<User> FindUserOrCreateNewAsync(string message)
         {
+            string firstName = "";
+            string lastName =  "";
+
+            Console.WriteLine($"\nPlease enter a first name and last name of user for {message}");
             string name = Console.ReadLine();
-            if (int.TryParse(name, out int id))
+            var tokens = name.Split(' ');
+            firstName = tokens[0];
+            if (tokens.Length > 1)
             {
-                Console.WriteLine("Wrong choose.");
-                Thread.Sleep(2000);
+                lastName = tokens[1];
+            }
+            var u = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
+            if (u != null)
+            { 
+                return u;
             }
             else
             {
-                firstName = name.Split(' ')[0];
-                lastName = name.Split(' ')[1];
-                name = firstName + " " + lastName;
-                if (firstName == null) firstName = " ";
-                if (lastName == null) lastName = " ";
-            }                       
-        }
+                return new User { FirstName = firstName, LastName = lastName };
+            }
+        }       
 
-        public void Exist()
-        {
-            Console.Clear();
-            Console.WriteLine("\nAlready exist in Library.");
-        }   
-
-        public void NotExist()
-        {
-            Console.Clear();
-            Console.WriteLine("\nDoes'nt exist in Library.");
-        }
-
-        public void IsBorrowing()
-        {
-            Console.Clear();
-            Console.WriteLine("\nAlready borrowed, so it's not possible delete.");
-        }
-
-        public void IsNotBorrowing()
-        {
-            Console.Clear();
-            Console.WriteLine("\nBook is not borrowed.");
-        }
-
-        public async Task<User> AddUser()
+        public async Task<User> AddUserAsync()
         {
             try
             {
-                Console.Clear();
-                Console.WriteLine("\nPlease enter a first name and last name of user.");
-
-                FindUser();
-
-                userModel = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-
-                if (userModel != null)
+                var user = await FindUserOrCreateNewAsync("new User");
+                if (user.Id == default)
                 {
-                    Exist();
-                    return null;
+                    context.Users.Add(user);
+                    context.SaveChanges();
+                    Console.WriteLine("\nUser " + user.FirstName + " " + user.LastName + " is added. ");
                 }
                 else
                 {
-                    var user = new User { FirstName = firstName, LastName = lastName };
-                    context.Users.Add(user);
-                    context.SaveChanges();
-                    Console.WriteLine("\nUser " + firstName + " " + lastName + " is added. ");
-                    return user;
-                }                               
+                    Console.WriteLine("User already exist.");
+                }
+                messageService.PressAny();
+                return user;                       
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
+                messageService.Error(ex);
                 return null;
             }
         }
 
-        public async Task<User> DeleteUser()
+        public async Task DeleteUserAsync()
         {
             try
             {
-                Console.Clear();
-                Console.WriteLine("\nPlease enter a first name and last name of user you want to delete.");
+                var userModel = await FindUserOrCreateNewAsync("delete User");
 
-                FindUser();
-
-                userModel = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-
-                if (userModel == null)
+                if (userModel.Id == default)
                 {
-                    NotExist();
-                    return null;
+                    messageService.NotExist(userModel.UserName);
                 }
-                else if (userModel.IsBorrowing == true)
+                else
                 {
-                    IsBorrowing();
+                    if ((await bookService.GetBorrowedBooksAsync(userModel)).Count == 0)
+                    {
+                        context.Users.Remove(userModel);
+                        context.SaveChanges();
+                        Console.WriteLine("\nYou already removed an user with name " + userModel.FirstName + " " + userModel.LastName);
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nUser is not possible to delete, cause is already borrowing a book.");
+                    }                    
+                }
+                messageService.PressAny();
+            }
+            catch (Exception ex)
+            {
+                messageService.Error(ex);
+            }
+        }
+
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            try
+            {
+                var users = await context.Users.ToListAsync();
+                if (!users.Any())
+                {
+                    messageService.NotExist("Users");
+                    messageService.PressAny();
                     return null;
                 }
                 else
                 {
-                    Console.Clear();
-                    context.Users.Remove(userModel);
-                    context.SaveChanges();
-                    Console.WriteLine("\nYou already removed an user with name " + userModel.FirstName + " " + userModel.LastName);
+                    Console.WriteLine("\nYour library of users:\n");
+                    users.ForEach(i => Console.WriteLine("{0}", i.UserName));
+                    messageService.PressAny();
+                    return users;
+                }
+            }
+            catch (Exception ex)
+            {
+                messageService.Error(ex);
+                return null;
+            }           
+        }       
+
+        public async Task<User> GetUserAsync()
+        {
+            try
+            {
+                var userModel = await FindUserOrCreateNewAsync("search");
+                var users = await context.Users.ToListAsync();
+
+                if (!users.Any(u => u.UserName == userModel.UserName))
+                {
+                    messageService.NotExist(userModel.UserName);
+                    messageService.PressAny();
+                    return null;
+                }
+                else
+                {
+                    Console.WriteLine("\nYour requested user: " + userModel.FirstName + " " + userModel.LastName);
+                    messageService.PressAny();
                     return userModel;
                 }                
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }            
-        }
-
-        public async Task<List<User>> GetAllUsers()
-        {
-            try
-            {
-                Console.Clear();
-                var users = await context.Users.ToListAsync();
-                Console.WriteLine("\nYour library of users:\n");
-                users.ForEach(i => Console.WriteLine("{0}", i.FirstName + " " + i.LastName));
-                return users;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
-                return null;
-            }           
-        }       
-
-        public async Task<User> GetUser()
-        {
-            try
-            {
-                Console.WriteLine("\nPlease enter a first name and last name of user");
-
-                FindUser();
-
-                userModel = await context.Users.FirstOrDefaultAsync(u => u.FirstName == firstName && u.LastName == lastName);
-
-                if (userModel == null)
-                {
-                    NotExist();
-                    return null;
-                }
-                else
-                {
-                    Console.Clear();
-                    Console.WriteLine("\nYour requested user: " + userModel.FirstName + " " + userModel.LastName);
-                    return userModel;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("\nMessage ---\n{0}", ex.Message);
+                messageService.Error(ex);
                 return null;
             }
         }        
