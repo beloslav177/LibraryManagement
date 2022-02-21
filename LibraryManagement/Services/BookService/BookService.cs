@@ -157,7 +157,7 @@ namespace Library.Services.BookService
             {
                 var bookModel = await FindBookOrCreateNewAsync("search");
                 
-                if (bookModel == null)
+                if (bookModel.Id == default)
                 {
                     messageService.NotExist(bookModel.BookName);
                     messageService.PressAny();
@@ -200,9 +200,10 @@ namespace Library.Services.BookService
                 else
                 {
                     Console.WriteLine("\nYou want a borrow book: " + bookModel.BookName + "\n");
-                    var userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
 
-                    if (userModel.Id != default)
+                    var userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
+                    
+                    if (userModel == null)
                     {
                         bookModel.User = userModel;
                         context.SaveChanges();
@@ -210,6 +211,14 @@ namespace Library.Services.BookService
                         messageService.PressAny();
                         return bookModel;
                     }
+                    //if (await userService.FindUserOrCreateNewAsync("borrow the book") == null)
+                    //{
+                    //    bookModel.User = userModel;
+                    //    context.SaveChanges();
+                    //    Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
+                    //    messageService.PressAny();
+                    //    return bookModel;
+                    //}
                     else
                     {
                         messageService.NotExist(bookModel.BookName);

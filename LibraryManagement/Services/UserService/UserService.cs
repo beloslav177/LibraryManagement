@@ -132,9 +132,8 @@ namespace Library.Services.UserService
             try
             {
                 var userModel = await FindUserOrCreateNewAsync("search");
-                var users = await context.Users.ToListAsync();
 
-                if (!users.Any(u => u.UserName == userModel.UserName))
+                if (userModel.Id == default)
                 {
                     messageService.NotExist(userModel.UserName);
                     messageService.PressAny();

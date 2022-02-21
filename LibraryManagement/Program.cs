@@ -1,6 +1,8 @@
 ﻿using Library.Services.BookService;
 using Library.Services.UserService;
 using LibraryManagement.Services.MessageService;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,15 +11,36 @@ namespace LibraryManagement
 {
     public class Program
     {
-        public static BookService bookService = new BookService(userService);
-        public static UserService userService = new UserService(bookService);
-        public static MessageService messageService = new MessageService();
+        //TODO: dependency injection, prekablovanie servis
+
+        //public static BookService bookService = new BookService(userService);
+        //public static UserService userService = new UserService(bookService);
 
         public static Menu menu = new Menu("Main Menu");
         public static Menu userMenu = new Menu("User Menu");
         public static Menu bookMenu = new Menu("Book Menu");
+        private readonly IMessageService messageService;
+        private readonly IUserService userService;
+        private readonly IBookService bookService;
 
-        public static async Task Main(string[] args)
+        public Program(IMessageService messageService, IUserService userService, IBookService bookService)
+        {
+            this.userService = userService;
+            this.bookService = bookService;
+            this.messageService = messageService;
+        }
+
+        private static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureServices((services) =>
+                    services.AddTransient<Program>()
+                            .AddTransient<UserService>()
+                            .AddTransient<BookService>()
+                            .AddTransient<MessageService>());
+        }
+
+        public async Task Run()
         {
             menu.AddMenuItem(1, "Book Service");
             menu.AddMenuItem(2, "User Service");
@@ -36,7 +59,7 @@ namespace LibraryManagement
             bookMenu.AddMenuItem(4, "Borrow book");
             bookMenu.AddMenuItem(5, "Return book");
             bookMenu.AddMenuItem(6, "Search book");
-            bookMenu.AddMenuItem(7, "Back");           
+            bookMenu.AddMenuItem(7, "Back");
 
             bool done = false;
             while (!done)
@@ -104,7 +127,7 @@ namespace LibraryManagement
                                     }
                                     else
                                     {
-                                        Console.WriteLine("\nBorrowed Books of " + userModel.UserName + ": \n" );
+                                        Console.WriteLine("\nBorrowed Books of " + userModel.UserName + ": \n");
                                         bookList.ForEach(i => Console.Write("{0}", i.BookName));
                                         messageService.PressAny();
                                     }
@@ -122,12 +145,18 @@ namespace LibraryManagement
                         }
                         break;
                     case 7:
-                        done = true;                        
+                        done = true;
                         break;
                     default:
                         break;
                 }
-            }            
+            }
+        }
+
+        public static void Main(string[] args)
+        {
+            var host = CreateHostBuilder(args).Build();
+            _ = host.Services.GetRequiredService<Program>().Run();
         }
     }
 }
