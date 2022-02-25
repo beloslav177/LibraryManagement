@@ -13,9 +13,6 @@ namespace LibraryManagement
     {
         //TODO: dependency injection, prekablovanie servis
 
-        //public static BookService bookService = new BookService(userService);
-        //public static UserService userService = new UserService(bookService);
-
         public static Menu menu = new Menu("Main Menu");
         public static Menu userMenu = new Menu("User Menu");
         public static Menu bookMenu = new Menu("Book Menu");
@@ -33,11 +30,13 @@ namespace LibraryManagement
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureServices((services) =>
-                    services.AddTransient<Program>()
-                            .AddTransient<UserService>()
-                            .AddTransient<BookService>()
-                            .AddTransient<MessageService>());
+                .ConfigureServices(services =>
+                {
+                    services.AddTransient<Program>();
+                    services.AddTransient<IUserService, UserService>();
+                    services.AddTransient<IBookService, BookService>();
+                    services.AddTransient<IMessageService, MessageService>();
+                });
         }
 
         public async Task Run()
@@ -155,7 +154,7 @@ namespace LibraryManagement
 
         public static void Main(string[] args)
         {
-            var host = CreateHostBuilder(args).Build();
+            var host = CreateHostBuilder(args).Build(); 
             _ = host.Services.GetRequiredService<Program>().Run();
         }
     }
