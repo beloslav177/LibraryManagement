@@ -15,13 +15,6 @@ namespace Library.Services.BookService
         private DataContext context = new DataContext();
         private MessageService messageService = new MessageService();
 
-        private readonly IUserService userService;
-
-        public BookService(IUserService userService )
-        {
-            this.userService = userService;
-        }
-
         public async Task<Book> AddAuthorOfBookAsync(string message)
         {
             string authorFirstName = "";
@@ -97,27 +90,26 @@ namespace Library.Services.BookService
         {
             try
             {
-                var book = await FindBookOrCreateNewAsync("delete Book");
-                var userModel = new User();
+                //var book = await FindBookOrCreateNewAsync("delete Book");
 
-                if (book.Id == default)
-                {
-                    messageService.NotExist(book.BookName);
-                }
-                else
-                {
-                    if ((await GetBorrowedBooksAsync(userModel)).Count == 0)
-                    {
-                        context.Books.Remove(book);
-                        context.SaveChanges();
-                        Console.WriteLine("\nYou already removed book with name " + book.BookName  + " from " + book.AuthorName);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"\n {book.BookName} book is'nt possible to delete, cause is already borrowed.");
-                    }
-                }
-                messageService.PressAny();
+                //if (book.Id == default)
+                //{
+                //    messageService.NotExist(book.BookName);
+                //}
+                //else
+                //{
+                //    if ((await GetBorrowedBooksAsync(userModel)).Count == 0)
+                //    {
+                //        context.Books.Remove(book);
+                //        context.SaveChanges();
+                //        Console.WriteLine("\nYou already removed book with name " + book.BookName  + " from " + book.AuthorName);
+                //    }
+                //    else
+                //    {
+                //        Console.WriteLine($"\n {book.BookName} book is'nt possible to delete, cause is already borrowed.");
+                //    }
+                //}
+                //messageService.PressAny();
             }
             catch (Exception ex)
             {
@@ -200,31 +192,7 @@ namespace Library.Services.BookService
                 else
                 {
                     Console.WriteLine("\nYou want a borrow book: " + bookModel.BookName + "\n");
-
-                    var userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
-                    
-                    if (userModel == null)
-                    {
-                        bookModel.User = userModel;
-                        context.SaveChanges();
-                        Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
-                        messageService.PressAny();
-                        return bookModel;
-                    }
-                    //if (await userService.FindUserOrCreateNewAsync("borrow the book") == null)
-                    //{
-                    //    bookModel.User = userModel;
-                    //    context.SaveChanges();
-                    //    Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
-                    //    messageService.PressAny();
-                    //    return bookModel;
-                    //}
-                    else
-                    {
-                        messageService.NotExist(bookModel.BookName);
-                        messageService.PressAny();
-                        return null;
-                    }
+                    return bookModel;                    
                 }                
             }
             catch (Exception ex)
@@ -238,37 +206,27 @@ namespace Library.Services.BookService
         {
             try
             {
-                var userModel = await userService.FindUserOrCreateNewAsync("return the Book");
-                if (userModel.Id != default)
+                var bookModel = await FindBookOrCreateNewAsync("return the Book");
+                if (bookModel != default)
                 {
-                    var bookModel = await FindBookOrCreateNewAsync("return the Book");
-                    if (bookModel != default)
-                    {
-                        messageService.NotExist(bookModel.BookName);
-                        messageService.PressAny();
-                        return null;
-                    }
-                    else if (bookModel.User != default)
-                    {
-                        messageService.IsBorrowing(bookModel.BookName);
-                        messageService.PressAny();
-                        return bookModel;
-                    }
-                    else
-                    {
-                        bookModel.User = null;
-                        context.SaveChanges();
-                        Console.WriteLine(userModel.UserName + " return book with Title" + bookModel.BookName);
-                        messageService.PressAny();
-                        return bookModel;
-                    }                    
-                }
-                else
-                {
-                    messageService.NotExist(userModel.UserName);
+                    messageService.NotExist(bookModel.BookName);
                     messageService.PressAny();
                     return null;
                 }
+                else if (bookModel.User != default)
+                {
+                    messageService.IsBorrowing(bookModel.BookName);
+                    messageService.PressAny();
+                    return bookModel;
+                }
+                else
+                {
+                    bookModel.User = null;
+                    context.SaveChanges();
+                    Console.WriteLine("User return book with title: " + bookModel.BookName);
+                    messageService.PressAny();
+                    return bookModel;
+                }   
             }
             catch (Exception ex)
             {

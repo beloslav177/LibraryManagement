@@ -1,6 +1,8 @@
-﻿using Library.Services.BookService;
+﻿using Library.Data;
+using Library.Services.BookService;
 using Library.Services.UserService;
 using LibraryManagement.Services.MessageService;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -13,6 +15,7 @@ namespace LibraryManagement
     {
         //TODO: dependency injection, prekablovanie servis
 
+        private DataContext context = new DataContext();
         public static Menu menu = new Menu("Main Menu");
         public static Menu userMenu = new Menu("User Menu");
         public static Menu bookMenu = new Menu("Book Menu");
@@ -22,9 +25,9 @@ namespace LibraryManagement
 
         public Program(IMessageService messageService, IUserService userService, IBookService bookService)
         {
+            this.messageService = messageService;
             this.userService = userService;
             this.bookService = bookService;
-            this.messageService = messageService;
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)
@@ -77,16 +80,59 @@ namespace LibraryManagement
                                     await bookService.AddBookAsync();
                                     break;
                                 case 2:
-                                    await bookService.DeleteBookAsync();
+                                    var bookModel = await bookService.FindBookOrCreateNewAsync("delete Book");
+                                    var userModel = await context.Users.FirstOrDefaultAsync();
+
+                                    if (bookModel.Id == default)
+                                    {
+                                        messageService.NotExist(bookModel.BookName);
+                                    }
+                                    else
+                                    {
+                                        if ((await bookService.GetBorrowedBooksAsync(userModel)).Count == 0)
+                                        {
+                                            context.Books.Remove(bookModel);
+                                            context.SaveChanges();
+                                            Console.WriteLine("\nYou already removed book with name " + bookModel.BookName + " from " + bookModel.AuthorName);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"\n {bookModel.BookName} book is'nt possible to delete, cause is already borrowed.");
+                                        }
+                                    }
+                                    messageService.PressAny();
                                     break;
                                 case 3:
                                     await bookService.GetAllBooksAsync();
                                     break;
                                 case 4:
-                                    await bookService.BorrowBookAsync();
+                                    bookModel = await bookService.BorrowBookAsync();
+                                    userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
+
+                                    if (userModel == null)
+                                    {
+                                        bookModel.User = userModel;
+                                        context.SaveChanges();
+                                        Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
+                                        messageService.PressAny();
+                                    }
+                                    else
+                                    {
+                                        messageService.NotExist(bookModel.BookName);
+                                        messageService.PressAny();
+                                    }
                                     break;
                                 case 5:
-                                    await bookService.ReturnBookAsync();
+                                    userModel = await userService.FindUserOrCreateNewAsync("return the Book");
+                                    if (userModel.Id != default)
+                                    {
+                                        await bookService.ReturnBookAsync();                                        
+                                    }
+                                    else
+                                    {
+                                        messageService.NotExist(userModel.UserName);
+                                        messageService.PressAny();
+                                    }
                                     break;
                                 case 6:
                                     await bookService.GetBookAsync();
@@ -110,13 +156,32 @@ namespace LibraryManagement
                                     await userService.AddUserAsync();
                                     break;
                                 case 2:
-                                    await userService.DeleteUserAsync();
+                                    var userModel = await userService.FindUserOrCreateNewAsync("delete User");
+
+                                    if (userModel.Id == default)
+                                    {
+                                        messageService.NotExist(userModel.UserName);
+                                    }
+                                    else
+                                    {
+                                        if ((await bookService.GetBorrowedBooksAsync(userModel)).Count == 0)
+                                        {
+                                            context.Users.Remove(userModel);
+                                            context.SaveChanges();
+                                            Console.WriteLine("\nYou already removed an user with name " + userModel.FirstName + " " + userModel.LastName);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("\nUser is not possible to delete, cause is already borrowing a book.");
+                                        }
+                                    }
+                                    messageService.PressAny();
                                     break;
                                 case 3:
                                     await userService.GetAllUsersAsync();
                                     break;
                                 case 4:
-                                    var userModel = await userService.FindUserOrCreateNewAsync("Booklist");
+                                    userModel = await userService.FindUserOrCreateNewAsync("Booklist");
                                     var bookList = await bookService.GetBorrowedBooksAsync(userModel);
                                     if (!bookList.Any())
                                     {
