@@ -106,21 +106,37 @@ namespace LibraryManagement
                                     await bookService.GetAllBooksAsync();
                                     break;
                                 case 4:
-                                    bookModel = await bookService.BorrowBookAsync();
-                                    userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
+                                    bookModel = await bookService.FindBookOrCreateNewAsync("borrow the Book");
+                                    bookModel = await context.Books.Include(u => u.User).FirstOrDefaultAsync(b => b.BookName == bookModel.BookName);
 
-                                    if (userModel == null)
+                                    if (bookModel == null)
                                     {
-                                        bookModel.User = userModel;
-                                        context.SaveChanges();
-                                        Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
+                                        messageService.NotExist("Requested book");
+                                        messageService.PressAny();
+                                    }
+                                    else if (bookModel.User != default)
+                                    {
+                                        messageService.IsBorrowing(bookModel.BookName);
                                         messageService.PressAny();
                                     }
                                     else
                                     {
-                                        messageService.NotExist(bookModel.BookName);
-                                        messageService.PressAny();
-                                    }
+                                        Console.WriteLine("\nYou want a borrow book: " + bookModel.BookName);
+                                        userModel = await userService.FindUserOrCreateNewAsync("borrow the book");
+
+                                        if (userModel.Id != default)
+                                        {
+                                            bookModel.User = userModel;
+                                            await context.SaveChangesAsync();
+                                            Console.WriteLine(userModel.UserName + " is borrowing " + bookModel.BookName);
+                                            messageService.PressAny();
+                                        }
+                                        else
+                                        {
+                                            messageService.NotExist(userModel.UserName);
+                                            messageService.PressAny();
+                                        }
+                                    }                                    
                                     break;
                                 case 5:
                                     userModel = await userService.FindUserOrCreateNewAsync("return the Book");
@@ -192,7 +208,7 @@ namespace LibraryManagement
                                     else
                                     {
                                         Console.WriteLine("\nBorrowed Books of " + userModel.UserName + ": \n");
-                                        bookList.ForEach(i => Console.Write("{0}", i.BookName));
+                                        bookList.ForEach(i => Console.WriteLine("{0}", i.BookName));
                                         messageService.PressAny();
                                     }
                                     break;
@@ -217,10 +233,10 @@ namespace LibraryManagement
             }
         }
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build(); 
-            _ = host.Services.GetRequiredService<Program>().Run();
+            await host.Services.GetRequiredService<Program>().Run();
         }
     }
 }

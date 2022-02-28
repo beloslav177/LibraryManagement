@@ -207,7 +207,7 @@ namespace Library.Services.BookService
             try
             {
                 var bookModel = await FindBookOrCreateNewAsync("return the Book");
-                if (bookModel != default)
+                if (bookModel.Id == default)
                 {
                     messageService.NotExist(bookModel.BookName);
                     messageService.PressAny();
