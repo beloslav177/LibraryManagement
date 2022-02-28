@@ -86,37 +86,6 @@ namespace Library.Services.BookService
             }            
         }        
 
-        public async Task DeleteBookAsync()
-        {
-            try
-            {
-                //var book = await FindBookOrCreateNewAsync("delete Book");
-
-                //if (book.Id == default)
-                //{
-                //    messageService.NotExist(book.BookName);
-                //}
-                //else
-                //{
-                //    if ((await GetBorrowedBooksAsync(userModel)).Count == 0)
-                //    {
-                //        context.Books.Remove(book);
-                //        context.SaveChanges();
-                //        Console.WriteLine("\nYou already removed book with name " + book.BookName  + " from " + book.AuthorName);
-                //    }
-                //    else
-                //    {
-                //        Console.WriteLine($"\n {book.BookName} book is'nt possible to delete, cause is already borrowed.");
-                //    }
-                //}
-                //messageService.PressAny();
-            }
-            catch (Exception ex)
-            {
-                messageService.Error(ex);
-            }
-        }
-
         public async Task<List<Book>> GetAllBooksAsync()
         {
             try
@@ -161,39 +130,6 @@ namespace Library.Services.BookService
                     messageService.PressAny();
                     return bookModel;
                 }
-            }
-            catch (Exception ex)
-            {
-                messageService.Error(ex);
-                return null;
-            }
-        }
-
-        public async Task<Book> BorrowBookAsync()
-        {
-            try
-            {
-                var bookModel = await FindBookOrCreateNewAsync("borrow the Book");
-
-                bookModel = await context.Books.Include(u => u.User).FirstOrDefaultAsync(b => b.BookName == bookModel.BookName);
-
-                if (bookModel == null)
-                {
-                    messageService.NotExist("Requested book");
-                    messageService.PressAny();
-                    return null;
-                }
-                else if (bookModel.User != default)
-                {
-                    messageService.IsBorrowing(bookModel.BookName);
-                    messageService.PressAny();
-                    return null;
-                }
-                else
-                {
-                    Console.WriteLine("\nYou want a borrow book: " + bookModel.BookName + "\n");
-                    return bookModel;                    
-                }                
             }
             catch (Exception ex)
             {

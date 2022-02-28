@@ -65,37 +65,6 @@ namespace Library.Services.UserService
             }
         }
 
-        public async Task DeleteUserAsync()
-        {
-            try
-            {
-                //var userModel = await FindUserOrCreateNewAsync("delete User");
-
-                //if (userModel.Id == default)
-                //{
-                //    messageService.NotExist(userModel.UserName);
-                //}
-                //else
-                //{
-                //    if ((await bookService.GetBorrowedBooksAsync(userModel)).Count == 0)
-                //    {
-                //        context.Users.Remove(userModel);
-                //        context.SaveChanges();
-                //        Console.WriteLine("\nYou already removed an user with name " + userModel.FirstName + " " + userModel.LastName);
-                //    }
-                //    else
-                //    {
-                //        Console.WriteLine("\nUser is not possible to delete, cause is already borrowing a book.");
-                //    }                    
-                //}
-                //messageService.PressAny();
-            }
-            catch (Exception ex)
-            {
-                messageService.Error(ex);
-            }
-        }
-
         public async Task<List<User>> GetAllUsersAsync()
         {
             try

@@ -8,7 +8,6 @@ namespace Library.Services.UserService
     {
         Task<User> FindUserOrCreateNewAsync(string message);
         Task<User> AddUserAsync();
-        Task DeleteUserAsync();
         Task<User> GetUserAsync();
         Task<List<User>> GetAllUsersAsync();
     }
